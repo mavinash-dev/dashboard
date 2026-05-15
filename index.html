@@ -173,6 +173,24 @@
     /* Empty */
     .empty { color: #3f3f46; font-size: 13px; padding: 60px 0; text-align: center; }
 
+    /* Pulse / heartbeat for Active */
+    .pulse-wrapper { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 5px; height: 5px; flex-shrink: 0; }
+    .pulse-ring {
+      position: absolute; inset: -3px;
+      border-radius: 50%;
+      animation: ping 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
+    }
+    @keyframes ping { 0%{transform:scale(1);opacity:0.8} 80%,100%{transform:scale(2.8);opacity:0} }
+    .accent-active { animation: accent-pulse 2.5s ease-in-out infinite; }
+    @keyframes accent-pulse { 0%,100%{opacity:1} 50%{opacity:0.55} }
+
+    /* Text clarity */
+    .meta-value { font-size: 12px; color: #c4c4c8; font-variant-numeric: tabular-nums; }
+    .task-list li { font-size: 12px; color: #71717a; padding-left: 16px; position: relative; line-height: 1.5; }
+    .summary { font-size: 12px; color: #8a8a92; line-height: 1.6; }
+    .focus-text { font-size: 13px; color: #e4e4e7; line-height: 1.5; }
+    .log-done { font-size: 11px; color: #6b6b73; }
+
     /* Responsive */
     @media (max-width: 520px) {
       body { padding: 20px 14px 40px; }
@@ -248,6 +266,13 @@
 <script>
   const OWNER = 'mavinash-dev';
 
+  // Fix: atob() returns binary string — must decode as UTF-8 or em-dashes/arrows break
+  function decodeBase64(base64) {
+    const binary = atob(base64.replace(/\n/g, ''));
+    const bytes = Uint8Array.from(binary, c => c.charCodeAt(0));
+    return new TextDecoder('utf-8').decode(bytes);
+  }
+
   const STATUS_COLORS = {
     Active:   { text: '#22c55e', bg: 'rgba(34,197,94,0.08)',  border: 'rgba(34,197,94,0.15)', accent: '#22c55e' },
     Hold:     { text: '#f59e0b', bg: 'rgba(245,158,11,0.08)', border: 'rgba(245,158,11,0.15)', accent: '#f59e0b' },
@@ -267,35 +292,37 @@
   }
 
   function parseTasks(text) {
-    const pending = [], done = [];
-    let inPending = false, inLog = false;
+    // Only count pending tasks — done count comes from time tracker rows
+    const pending = [];
+    let inPending = false;
     for (const line of text.split('\n')) {
       if (/^## Pending Tasks/.test(line)) { inPending = true; continue; }
-      if (inPending && /^## /.test(line)) inPending = false;
+      if (inPending && /^## /.test(line)) break;
       if (inPending && /^- \[ \]/.test(line)) pending.push(line.replace('- [ ]', '').trim());
-      if (/^## Development Log/.test(line)) { inLog = true; continue; }
-      if (inLog && /^## /.test(line)) inLog = false;
-      if (inLog && /^- \[x\]/i.test(line)) done.push(line.replace(/^- \[x\]/i, '').trim());
     }
+    // Count done tasks from time tracker (number of sessions = sessions completed)
+    const sessionMatches = text.match(/^### .+/gm) || [];
+    const done = Math.max(0, sessionMatches.length - 1); // sessions minus the initial one
     return { pending, done };
   }
 
   function parseLog(text) {
     const entries = [];
+    const seen = new Set();
     let inSection = false, cur = null;
     for (const line of text.split('\n')) {
       if (/^## Development Log/.test(line)) { inSection = true; continue; }
-      if (inSection && /^## /.test(line)) { if (cur) entries.push(cur); break; }
+      if (inSection && /^## /.test(line)) { if (cur && !seen.has(cur.date)) { seen.add(cur.date); entries.push(cur); } break; }
       if (inSection && /^### /.test(line)) {
-        if (cur) entries.push(cur);
+        if (cur && !seen.has(cur.date)) { seen.add(cur.date); entries.push(cur); }
         cur = { date: line.replace('###', '').trim(), done: [], time: '' };
       } else if (inSection && cur && /^- \[x\]/i.test(line)) {
         cur.done.push(line.replace(/^- \[x\]/i, '').trim());
       } else if (inSection && cur && /\*\*Time:\*\*/.test(line)) {
-        cur.time = line.replace('**Time:**', '').trim();
+        cur.time = line.replace('**Time:**', '').replace(/^[-—]$/, '').trim();
       }
     }
-    if (cur) entries.push(cur);
+    if (cur && !seen.has(cur.date)) entries.push(cur);
     return entries.slice(0, 2);
   }
 
@@ -320,22 +347,25 @@
 
   function relativeDate(dateStr) {
     if (!dateStr || dateStr === '—') return dateStr;
-    const d = new Date(dateStr);
+    // Parse as local date (avoid UTC timezone shifting date by -1)
+    const parts = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!parts) return dateStr;
+    const d = new Date(+parts[1], +parts[2] - 1, +parts[3]);
     if (isNaN(d)) return dateStr;
-    const diff = Math.floor((Date.now() - d) / 86400000);
-    if (diff === 0) return 'Today';
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const diff = Math.floor((today - d) / 86400000);
+    if (diff <= 0) return 'Today';
     if (diff === 1) return 'Yesterday';
     if (diff < 7) return `${diff}d ago`;
-    if (diff < 30) return `${Math.floor(diff/7)}w ago`;
-    if (diff < 365) return `${Math.floor(diff/30)}mo ago`;
-    return dateStr;
+    if (diff < 30) return `${Math.floor(diff / 7)}w ago`;
+    return `${Math.floor(diff / 30)}mo ago`;
   }
 
   function renderCard(meta, tasks, log, totalTime, repo) {
     const col = STATUS_COLORS[meta.status] || STATUS_COLORS.Archived;
     const { pending, done } = tasks;
-    const totalTasks = pending.length + done.length;
-    const completedPct = totalTasks ? Math.round((done.length / totalTasks) * 100) : 0;
+    const totalTasks = pending.length;
+    const completedPct = 0; // pending tasks are what's left — bar shows remaining work
     const phaseNum = phaseNumber(meta.phase);
     const totalPhases = 3;
 
@@ -359,7 +389,7 @@
 
     return `
       <div class="card">
-        <div class="card-accent" style="background:${col.accent}"></div>
+        <div class="card-accent${meta.status === 'Active' ? ' accent-active' : ''}" style="background:${col.accent}"></div>
         <div class="card-body">
 
           <div class="card-header">
@@ -368,7 +398,10 @@
               <a class="project-repo" href="https://github.com/${OWNER}/${repo}" target="_blank">${OWNER}/${repo}</a>
             </div>
             <span class="badge" style="background:${col.bg};color:${col.text};border:1px solid ${col.border}">
-              <span class="dot" style="background:${col.text}"></span>${meta.status}
+              ${meta.status === 'Active'
+                ? `<span class="pulse-wrapper"><span class="pulse-ring" style="background:${col.text}"></span><span class="dot" style="background:${col.text}"></span></span>`
+                : `<span class="dot" style="background:${col.text}"></span>`
+              }${meta.status}
             </span>
           </div>
 
@@ -407,11 +440,8 @@
           <div class="divider"></div>
           <div>
             <div class="tasks-header">
-              <div class="section-label">Tasks</div>
-              <span class="tasks-count">${done.length}/${totalTasks} done</span>
-            </div>
-            <div class="progress-bar">
-              <div class="progress-fill" style="width:${completedPct}%"></div>
+              <div class="section-label">Pending Tasks</div>
+              <span class="tasks-count">${pending.length} remaining</span>
             </div>
             <ul class="task-list">${taskItems}</ul>
           </div>` : ''}
@@ -453,7 +483,7 @@
       );
       if (!res.ok) return null;
       const json = await res.json();
-      return atob(json.content.replace(/\n/g, ''));
+      return decodeBase64(json.content);
     } catch { return null; }
   }
 
