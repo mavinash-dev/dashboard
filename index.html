@@ -222,7 +222,7 @@
         <div class="card-header">
           <div>
             <div class="project-name">${meta.name || repo}</div>
-            <a class="project-repo gh-link" href="https://github.com/${PROJECTS.find(p=>p.repo===repo)?.owner}/${repo}" target="_blank">${repo}</a>
+            <a class="project-repo gh-link" href="https://github.com/${OWNER}/${repo}" target="_blank">${repo}</a>
           </div>
           <span class="badge" style="background:${col.bg};color:${col.text};border:1px solid ${col.border}">
             <span class="dot" style="background:${col.text}"></span>${meta.status}
@@ -265,10 +265,14 @@
 
   async function fetchStatus(owner, repo) {
     const url = `https://api.github.com/repos/${owner}/${repo}/contents/STATUS.md`;
-    const res = await fetch(url, { headers: { Accept: 'application/vnd.github.v3+json' } });
-    if (!res.ok) return null; // no STATUS.md — skip silently
-    const json = await res.json();
-    return atob(json.content.replace(/\n/g, ''));
+    try {
+      const res = await fetch(url, { headers: { Accept: 'application/vnd.github.v3+json' } });
+      if (!res.ok) return null; // no STATUS.md — skip silently
+      const json = await res.json();
+      return atob(json.content.replace(/\n/g, ''));
+    } catch {
+      return null;
+    }
   }
 
   async function load() {
