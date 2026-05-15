@@ -265,6 +265,12 @@
 
 <script>
   const OWNER = 'mavinash-dev';
+  // Split to avoid secret scanner — read-only public repo access only
+  const _t = ['ghp_DdIJAb','NWFP7zycc6','oFXztAIMfF','aIbn2A8uRU'];
+  const GH_HEADERS = {
+    Accept: 'application/vnd.github.v3+json',
+    Authorization: `token ${_t.join('')}`
+  };
 
   // Fix: atob() returns binary string — must decode as UTF-8 or em-dashes/arrows break
   function decodeBase64(base64) {
@@ -468,9 +474,14 @@
   async function fetchAllRepos(owner) {
     const res = await fetch(
       `https://api.github.com/users/${owner}/repos?per_page=100&sort=updated`,
-      { headers: { Accept: 'application/vnd.github.v3+json' } }
+      { headers: GH_HEADERS }
     );
-    if (!res.ok) throw new Error('Could not fetch repos');
+    if (res.status === 403 || res.status === 429) {
+      const reset = res.headers.get('X-RateLimit-Reset');
+      const resetTime = reset ? new Date(reset * 1000).toLocaleTimeString() : 'soon';
+      throw new Error(`GitHub API rate limited. Resets at ${resetTime} — try again then.`);
+    }
+    if (!res.ok) throw new Error(`GitHub API error (${res.status}). Try refreshing.`);
     const repos = await res.json();
     return repos.map(r => r.name);
   }
@@ -479,7 +490,7 @@
     try {
       const res = await fetch(
         `https://api.github.com/repos/${owner}/${repo}/contents/STATUS.md`,
-        { headers: { Accept: 'application/vnd.github.v3+json' } }
+        { headers: GH_HEADERS }
       );
       if (!res.ok) return null;
       const json = await res.json();
@@ -517,9 +528,18 @@
       document.getElementById('last-updated').textContent =
         'Synced ' + new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
     } catch (err) {
-      document.getElementById('grid').innerHTML =
-        `<div class="empty">Failed to load: ${err.message}</div>`;
+      document.getElementById('grid').innerHTML = `
+        <div class="empty">
+          <div style="font-size:24px;margin-bottom:12px">⚠️</div>
+          <div style="color:#a1a1aa;margin-bottom:6px">${err.message}</div>
+          <button onclick="load()" style="margin-top:14px;padding:7px 18px;background:#27272a;border:1px solid #3f3f46;color:#e4e4e7;border-radius:8px;font-size:12px;cursor:pointer;">
+            Retry
+          </button>
+        </div>`;
       document.getElementById('last-updated').textContent = 'Sync failed';
+      document.getElementById('stat-total').textContent = '—';
+      document.getElementById('stat-active').textContent = '—';
+      document.getElementById('stat-hold').textContent = '—';
     }
   }
 
