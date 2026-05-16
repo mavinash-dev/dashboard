@@ -148,19 +148,30 @@
   const DAMAGE_COLORS = { '0':'#22c55e','1':'#f59e0b','2':'#f97316','3':'#ef4444','4+':'#dc2626' };
   const MEAL_COLORS   = { skip:'#52525b', light:'#22c55e', medium:'#f59e0b', heavy:'#ef4444' };
 
+  function hexRgb(hex) {
+    const h = hex.replace('#','');
+    return [parseInt(h.slice(0,2),16), parseInt(h.slice(2,4),16), parseInt(h.slice(4,6),16)];
+  }
   function eStyle(n, sel) {
-    const c = ENERGY_COLORS[n];
+    const c = ENERGY_COLORS[n]; if(!c) return '';
+    const [r,g,b] = hexRgb(c);
     return sel
-      ? `background:${c}28;border-color:${c};color:${c}`
-      : `background:${c}0d;border-color:${c}30;color:${c}99`;
+      ? `background:rgba(${r},${g},${b},0.2);border:1.5px solid ${c};color:${c}`
+      : `background:rgba(${r},${g},${b},0.06);border:1.5px solid rgba(${r},${g},${b},0.25);color:rgba(${r},${g},${b},0.7)`;
   }
   function mStyle(opt, sel) {
     const c = MEAL_COLORS[opt] || '#52525b';
-    return sel ? `background:${c}22;border-color:${c};color:${c}` : '';
+    const [r,g,b] = hexRgb(c);
+    return sel
+      ? `background:rgba(${r},${g},${b},0.18);border:1.5px solid ${c};color:${c}`
+      : `background:var(--card);border:1.5px solid rgba(${r},${g},${b},0.25);color:rgba(${r},${g},${b},0.55)`;
   }
   function dStyle(n, sel) {
     const c = DAMAGE_COLORS[String(n)] || '#52525b';
-    return sel ? `background:${c}22;border-color:${c};color:${c}` : '';
+    const [r,g,b] = hexRgb(c);
+    return sel
+      ? `background:rgba(${r},${g},${b},0.18);border:1.5px solid ${c};color:${c}`
+      : `background:var(--card);border:1.5px solid rgba(${r},${g},${b},0.2);color:rgba(${r},${g},${b},0.55)`;
   }
 
   // ── Utilities ──
