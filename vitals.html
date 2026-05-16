@@ -9,716 +9,528 @@
   <title>VITALS</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     :root {
-      --bg: #09090b;
-      --card: #111113;
-      --border: #1d1d20;
-      --border2: #27272a;
-      --text: #e4e4e7;
-      --sub: #71717a;
-      --dim: #52525b;
-      --accent: #6366f1;
-      --green: #22c55e;
-      --amber: #f59e0b;
-      --red: #ef4444;
+      --bg: #09090b; --card: #111113; --border: #1d1d20; --border2: #27272a;
+      --text: #e4e4e7; --sub: #71717a; --dim: #52525b;
+      --accent: #6366f1; --green: #22c55e; --amber: #f59e0b; --red: #ef4444;
     }
-
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      min-height: -webkit-fill-available;
-      padding: env(safe-area-inset-top, 20px) 20px env(safe-area-inset-bottom, 20px);
-      padding-top: max(env(safe-area-inset-top), 20px);
-      padding-bottom: max(env(safe-area-inset-bottom), 24px);
+      background: var(--bg); color: var(--text);
+      min-height: 100vh; min-height: -webkit-fill-available;
+      padding: max(env(safe-area-inset-top),20px) 18px max(env(safe-area-inset-bottom),24px);
     }
-
     .screen { max-width: 420px; margin: 0 auto; }
 
     /* Header */
-    .header {
-      display: flex; justify-content: space-between; align-items: center;
-      margin-bottom: 28px; padding-top: 8px;
-    }
-    .header-logo {
-      display: flex; align-items: center; gap: 8px;
-    }
-    .logo-icon {
-      width: 34px; height: 34px; border-radius: 9px;
-      background: linear-gradient(135deg, #6366f1, #8b5cf6);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 16px; font-weight: 800; color: #fff;
-    }
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-top: 6px; }
+    .logo { display: flex; align-items: center; gap: 8px; }
+    .logo-icon { width: 32px; height: 32px; border-radius: 9px; background: linear-gradient(135deg,#6366f1,#8b5cf6); display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 800; color: #fff; }
     .logo-text { font-size: 17px; font-weight: 700; color: #fff; letter-spacing: -0.3px; }
-    .header-date { font-size: 12px; color: var(--dim); text-align: right; }
-    .header-period {
-      font-size: 11px; font-weight: 600; letter-spacing: 0.5px;
-      text-transform: uppercase; color: var(--accent); margin-top: 2px;
-    }
+    .header-date { font-size: 11px; color: var(--dim); text-align: right; }
 
-    /* Period toggle */
-    .period-toggle {
-      display: flex; gap: 6px; margin-bottom: 24px;
-      background: var(--card); border: 1px solid var(--border);
-      border-radius: 10px; padding: 4px;
-    }
-    .period-btn {
-      flex: 1; padding: 8px; border: none; border-radius: 7px;
-      font-size: 13px; font-weight: 500; cursor: pointer;
-      background: transparent; color: var(--dim); transition: all 0.15s;
-    }
-    .period-btn.active { background: var(--accent); color: #fff; }
+    /* Tabs */
+    .tabs { display: flex; gap: 3px; background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 3px; margin-bottom: 22px; }
+    .tab-btn { flex: 1; padding: 8px 4px; border: none; border-radius: 7px; font-size: 12px; font-weight: 500; cursor: pointer; background: transparent; color: var(--dim); transition: all 0.12s; -webkit-tap-highlight-color: transparent; }
+    .tab-btn.active { background: var(--accent); color: #fff; }
 
     /* Section */
-    .section { margin-bottom: 24px; }
-    .section-label {
-      font-size: 10px; text-transform: uppercase; letter-spacing: 0.7px;
-      color: var(--dim); font-weight: 600; margin-bottom: 10px;
-    }
+    .section { margin-bottom: 20px; }
+    .section-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.7px; color: var(--dim); font-weight: 600; margin-bottom: 10px; }
 
-    /* Option row (pill buttons) */
-    .option-row { display: flex; gap: 8px; flex-wrap: wrap; }
-    .opt-btn {
-      flex: 1; min-width: 60px; padding: 12px 8px;
-      background: var(--card); border: 1.5px solid var(--border);
-      border-radius: 10px; color: var(--sub); font-size: 13px;
-      font-weight: 500; cursor: pointer; text-align: center;
-      transition: all 0.12s; -webkit-tap-highlight-color: transparent;
-    }
-    .opt-btn:active { transform: scale(0.97); }
-    .opt-btn.selected {
-      border-color: var(--accent); color: var(--accent);
-      background: rgba(99,102,241,0.1);
-    }
-    .opt-btn.selected-green { border-color: var(--green); color: var(--green); background: rgba(34,197,94,0.1); }
-    .opt-btn.selected-amber { border-color: var(--amber); color: var(--amber); background: rgba(245,158,11,0.1); }
-    .opt-btn.selected-red   { border-color: var(--red);   color: var(--red);   background: rgba(239,68,68,0.1); }
+    /* Option chips */
+    .chips { display: flex; gap: 7px; flex-wrap: wrap; }
+    .chip { padding: 9px 14px; background: var(--card); border: 1.5px solid var(--border); border-radius: 20px; color: var(--sub); font-size: 13px; cursor: pointer; white-space: nowrap; transition: all 0.1s; -webkit-tap-highlight-color: transparent; }
+    .chip:active { transform: scale(0.96); }
+    .chip.on-green  { border-color: var(--green);  color: var(--green);  background: rgba(34,197,94,0.1); }
+    .chip.on-accent { border-color: var(--accent); color: var(--accent); background: rgba(99,102,241,0.1); }
+    .chip.on-amber  { border-color: var(--amber);  color: var(--amber);  background: rgba(245,158,11,0.1); }
+    .chip.on-red    { border-color: var(--red);    color: var(--red);    background: rgba(239,68,68,0.1); }
 
-    /* Activities */
-    .activity-row {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 11px 0; border-bottom: 1px solid var(--border);
-    }
+    /* Meal rows */
+    .meal-row { display: flex; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); gap: 8px; }
+    .meal-row:last-child { border-bottom: none; }
+    .meal-name { font-size: 13px; color: var(--sub); width: 80px; flex-shrink: 0; }
+    .meal-opts { display: flex; gap: 5px; flex: 1; }
+    .meal-opt { flex: 1; padding: 6px 4px; background: var(--card); border: 1.5px solid var(--border); border-radius: 8px; font-size: 11px; color: var(--dim); cursor: pointer; text-align: center; transition: all 0.1s; -webkit-tap-highlight-color: transparent; }
+    .meal-opt.selected { border-color: var(--accent); color: var(--accent); background: rgba(99,102,241,0.1); }
+
+    /* Energy */
+    .energy-row { display: flex; gap: 6px; flex-wrap: wrap; }
+    .e-btn { flex: 1; min-width: 36px; padding: 11px 4px; background: var(--card); border: 1.5px solid var(--border); border-radius: 8px; color: var(--sub); font-size: 13px; font-weight: 600; cursor: pointer; text-align: center; transition: all 0.1s; -webkit-tap-highlight-color: transparent; }
+    .e-btn.selected { background: var(--amber); border-color: var(--amber); color: #000; }
+
+    /* Stepper */
+    .activity-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
     .activity-row:last-child { border-bottom: none; }
-    .activity-label { font-size: 13px; color: var(--sub); display: flex; align-items: center; gap: 8px; }
+    .activity-label { font-size: 13px; color: var(--sub); }
     .stepper { display: flex; align-items: center; gap: 10px; }
-    .stepper-btn {
-      width: 30px; height: 30px; border-radius: 50%;
-      background: var(--card); border: 1.5px solid var(--border2);
-      color: var(--text); font-size: 18px; cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      line-height: 1; transition: background 0.1s;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .stepper-btn:active { background: var(--border2); }
-    .stepper-val { min-width: 40px; text-align: center; font-size: 13px; font-weight: 600; color: var(--text); }
-
-    /* Energy dots */
-    .energy-row { display: flex; gap: 10px; }
-    .energy-btn {
-      flex: 1; aspect-ratio: 1; border-radius: 50%;
-      background: var(--card); border: 1.5px solid var(--border);
-      color: var(--sub); font-size: 15px; font-weight: 700;
-      cursor: pointer; display: flex; align-items: center; justify-content: center;
-      transition: all 0.12s; -webkit-tap-highlight-color: transparent;
-    }
-    .energy-btn.selected { background: var(--amber); border-color: var(--amber); color: #000; }
-
-    /* Time inputs */
-    .time-row { display: flex; gap: 10px; }
-    .time-field { flex: 1; }
-    .time-field label { font-size: 11px; color: var(--dim); margin-bottom: 6px; display: block; }
-    .time-input {
-      width: 100%; padding: 12px 14px; background: var(--card);
-      border: 1.5px solid var(--border); border-radius: 10px;
-      color: var(--text); font-size: 16px; outline: none;
-      -webkit-appearance: none; color-scheme: dark;
-    }
-    .time-input:focus { border-color: var(--accent); }
-    .duration-display {
-      text-align: center; font-size: 12px; color: var(--sub); margin-top: 8px;
-    }
-    .duration-display span { color: var(--text); font-weight: 600; }
+    .s-btn { width: 30px; height: 30px; border-radius: 50%; background: var(--card); border: 1.5px solid var(--border2); color: var(--text); font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; -webkit-tap-highlight-color: transparent; }
+    .s-btn:active { background: var(--border2); }
+    .s-val { min-width: 40px; text-align: center; font-size: 13px; font-weight: 600; color: var(--text); }
 
     /* Number input */
-    .number-input {
-      width: 100%; padding: 12px 14px; background: var(--card);
-      border: 1.5px solid var(--border); border-radius: 10px;
-      color: var(--text); font-size: 16px; outline: none;
-      -webkit-appearance: none;
-    }
-    .number-input:focus { border-color: var(--accent); }
-    .number-input::placeholder { color: var(--dim); }
+    .num-input { width: 100%; padding: 11px 14px; background: var(--card); border: 1.5px solid var(--border); border-radius: 10px; color: var(--text); font-size: 16px; outline: none; -webkit-appearance: none; }
+    .num-input:focus { border-color: var(--accent); }
+    .num-input::placeholder { color: var(--dim); }
 
-    /* Notes */
-    .notes-input {
-      width: 100%; padding: 12px 14px; background: var(--card);
-      border: 1.5px solid var(--border); border-radius: 10px;
-      color: var(--text); font-size: 14px; outline: none;
-      resize: none; height: 72px; font-family: inherit;
-      color-scheme: dark;
-    }
-    .notes-input:focus { border-color: var(--accent); }
-    .notes-input::placeholder { color: var(--dim); }
+    /* Text area */
+    .txt-input { width: 100%; padding: 11px 14px; background: var(--card); border: 1.5px solid var(--border); border-radius: 10px; color: var(--text); font-size: 14px; outline: none; resize: none; height: 68px; font-family: inherit; color-scheme: dark; }
+    .txt-input:focus { border-color: var(--accent); }
+    .txt-input::placeholder { color: var(--dim); }
+
+    /* Custom food input */
+    .custom-row { display: flex; gap: 8px; margin-top: 8px; }
+    .custom-input { flex: 1; padding: 9px 12px; background: var(--card); border: 1.5px solid var(--border); border-radius: 10px; color: var(--text); font-size: 13px; outline: none; }
+    .custom-input:focus { border-color: var(--accent); }
+    .custom-input::placeholder { color: var(--dim); }
+    .add-btn { padding: 9px 14px; background: var(--accent); border: none; border-radius: 10px; color: #fff; font-size: 13px; cursor: pointer; }
+    .custom-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .custom-tag { padding: 4px 10px; background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.3); border-radius: 20px; font-size: 12px; color: var(--accent); cursor: pointer; }
+
+    /* Sleep sessions */
+    .sleep-session { background: var(--card); border: 1.5px solid var(--border); border-radius: 10px; padding: 13px; margin-bottom: 10px; }
+    .session-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .session-num { font-size: 12px; color: var(--dim); }
+    .remove-btn { background: none; border: none; color: var(--red); font-size: 20px; cursor: pointer; line-height: 1; padding: 0; }
+    .time-row { display: flex; gap: 10px; }
+    .time-field label { font-size: 11px; color: var(--dim); margin-bottom: 5px; display: block; }
+    .time-input { width: 100%; padding: 10px 12px; background: var(--bg); border: 1.5px solid var(--border); border-radius: 8px; color: var(--text); font-size: 15px; outline: none; color-scheme: dark; }
+    .time-input:focus { border-color: var(--accent); }
+    .dur-label { text-align: center; font-size: 11px; color: var(--dim); margin-top: 7px; }
+    .dur-label span { color: var(--text); font-weight: 600; }
+    .add-session-btn { width: 100%; padding: 10px; background: transparent; border: 1.5px dashed var(--border2); border-radius: 10px; color: var(--dim); font-size: 13px; cursor: pointer; margin-bottom: 14px; }
+    .total-sleep { background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.2); border-radius: 10px; padding: 11px 16px; text-align: center; font-size: 13px; color: var(--sub); }
+    .total-sleep span { font-size: 15px; font-weight: 700; color: #fff; }
 
     /* Submit */
-    .submit-btn {
-      width: 100%; padding: 16px; border: none; border-radius: 12px;
-      background: var(--accent); color: #fff; font-size: 15px;
-      font-weight: 600; cursor: pointer; letter-spacing: 0.2px;
-      margin-top: 8px; transition: opacity 0.15s;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .submit-btn:active { opacity: 0.85; }
-    .submit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-    .submit-btn.loading { opacity: 0.7; }
+    .save-btn { width: 100%; padding: 15px; border: none; border-radius: 12px; background: var(--accent); color: #fff; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 4px; -webkit-tap-highlight-color: transparent; }
+    .save-btn:active { opacity: 0.85; }
+    .save-btn:disabled { opacity: 0.45; }
+    .err { font-size: 12px; color: var(--red); margin-top: 6px; min-height: 16px; }
 
-    /* Success screen */
-    .success {
-      text-align: center; padding: 40px 0;
-      display: flex; flex-direction: column; align-items: center; gap: 16px;
-    }
-    .success-icon { font-size: 52px; }
-    .success-title { font-size: 20px; font-weight: 700; color: #fff; }
-    .success-meta { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
-    .success-chip {
-      padding: 6px 14px; background: var(--card); border: 1px solid var(--border);
-      border-radius: 20px; font-size: 13px; color: var(--sub);
-    }
-    .success-chip span { color: var(--text); font-weight: 600; }
+    /* Success */
+    .success { text-align: center; padding: 40px 0; display: flex; flex-direction: column; align-items: center; gap: 14px; }
+    .success-icon { font-size: 48px; }
+    .success-title { font-size: 19px; font-weight: 700; color: #fff; }
+    .success-chips { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+    .s-chip { padding: 5px 13px; background: var(--card); border: 1px solid var(--border); border-radius: 20px; font-size: 12px; color: var(--sub); }
+    .s-chip b { color: var(--text); }
     .success-actions { display: flex; flex-direction: column; gap: 8px; width: 100%; }
-    .action-btn {
-      width: 100%; padding: 14px; border-radius: 12px; font-size: 14px;
-      font-weight: 500; cursor: pointer; text-align: center;
-      text-decoration: none; display: block; transition: opacity 0.15s;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .action-btn.primary { background: var(--accent); color: #fff; border: none; }
-    .action-btn.secondary {
-      background: var(--card); color: var(--sub);
-      border: 1.5px solid var(--border);
-    }
-    .action-btn:active { opacity: 0.8; }
+    .act-btn { width: 100%; padding: 13px; border-radius: 12px; font-size: 14px; font-weight: 500; cursor: pointer; text-align: center; text-decoration: none; display: block; -webkit-tap-highlight-color: transparent; }
+    .act-btn.pri { background: var(--accent); color: #fff; border: none; }
+    .act-btn.sec { background: var(--card); color: var(--sub); border: 1.5px solid var(--border); }
 
-    /* Setup screen */
-    .setup {
-      padding: 40px 0; text-align: center;
-      display: flex; flex-direction: column; gap: 16px;
-    }
-    .setup-icon { font-size: 40px; }
-    .setup-title { font-size: 18px; font-weight: 700; color: #fff; }
-    .setup-sub { font-size: 13px; color: var(--sub); line-height: 1.5; }
-    .pat-input {
-      width: 100%; padding: 12px 14px; background: var(--card);
-      border: 1.5px solid var(--border); border-radius: 10px;
-      color: var(--text); font-size: 13px; outline: none;
-      font-family: monospace; text-align: left;
-    }
+    /* Setup */
+    .setup { padding: 40px 0; text-align: center; display: flex; flex-direction: column; gap: 14px; }
+    .pat-input { width: 100%; padding: 11px 13px; background: var(--card); border: 1.5px solid var(--border); border-radius: 10px; color: var(--text); font-size: 13px; outline: none; font-family: monospace; }
     .pat-input:focus { border-color: var(--accent); }
     .pat-note { font-size: 11px; color: var(--dim); text-align: left; line-height: 1.5; }
-
-    /* Error */
-    .error-msg { font-size: 12px; color: var(--red); margin-top: 6px; min-height: 16px; }
   </style>
 </head>
 <body>
 <div id="app"></div>
-
 <script>
-  const OWNER  = 'mavinash-dev';
-  const REPO   = 'life-log';
-  const PAT_KEY = 'vitals_pat';
-  const DASH   = 'https://mavinash-dev.github.io/dashboard/life.html';
+  const OWNER = 'mavinash-dev', REPO = 'life-log', PAT_KEY = 'vitals_pat';
+  const DASH  = 'https://mavinash-dev.github.io/dashboard/life.html';
+
+  const ACTIVITIES = [
+    { key:'office',    label:'💼 Office work'   },
+    { key:'dev',       label:'💻 Personal dev'   },
+    { key:'movies',    label:'🎬 Movies / Shows' },
+    { key:'foosball',  label:'🏓 Foosball'        },
+    { key:'badminton', label:'🏸 Badminton'       },
+    { key:'guitar',    label:'🎸 Guitar'          },
+    { key:'gym',       label:'🏋️ Gym'            },
+    { key:'walk',      label:'🚶 Walk / Run'      },
+  ];
+
+  const DRINKS = [
+    { key:'smoothie',    label:'🥛 Smoothie'     },
+    { key:'cold_coffee', label:'☕ Cold Coffee'   },
+    { key:'milkshake',   label:'🧋 Milkshake'    },
+    { key:'tea',         label:'🫖 Tea'           },
+    { key:'juice',       label:'🍊 Juice'         },
+  ];
 
   // ── Utilities ──
   function today() {
     const d = new Date();
     return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
   }
-
   function dateLabel() {
-    return new Date().toLocaleDateString('en-IN', { day:'numeric', month:'long', year:'numeric' });
+    return new Date().toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'});
   }
-
-  function isPM() { return new Date().getHours() >= 14; }
-
   function to12h(t) {
     if (!t) return '';
-    const [h, m] = t.split(':').map(Number);
+    const [h,m] = t.split(':').map(Number);
     const ap = h < 12 ? 'AM' : 'PM';
-    const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+    const h12 = h===0?12:h>12?h-12:h;
     return `${String(h12).padStart(2,'0')}:${String(m).padStart(2,'0')} ${ap}`;
   }
-
-  function calcDuration(from, to) {
-    if (!from || !to) return null;
-    const [fh, fm] = from.split(':').map(Number);
-    const [th, tm] = to.split(':').map(Number);
-    let fromM = fh * 60 + fm, toM = th * 60 + tm;
-    if (toM <= fromM) toM += 1440;
-    return Math.round((toM - fromM) / 60 * 100) / 100;
+  function calcDur(from, to) {
+    if (!from||!to) return null;
+    const [fh,fm]=from.split(':').map(Number), [th,tm]=to.split(':').map(Number);
+    let a=fh*60+fm, b=th*60+tm;
+    if (b<=a) b+=1440;
+    return Math.round((b-a)/60*100)/100;
   }
-
-  function fmtDuration(h) {
-    if (!h && h !== 0) return '—';
-    const hrs = Math.floor(h), mins = Math.round((h - hrs) * 60);
-    return mins ? `${hrs}h ${mins}m` : `${hrs}h`;
+  function fmtDur(h) {
+    if (!h&&h!==0) return '—';
+    const hrs=Math.floor(h), mins=Math.round((h-hrs)*60);
+    return mins?`${hrs}h ${mins}m`:`${hrs}h`;
   }
-
-  function toBase64(str) {
-    return btoa(unescape(encodeURIComponent(str)));
-  }
-
-  // ── GitHub API ──
-  async function writeToDB(period, data) {
-    const pat = localStorage.getItem(PAT_KEY);
-    const date = today();
-    const path = `logs/${date}-${period}.json`;
-    const url = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${path}`;
-    const headers = {
-      Authorization: `token ${pat}`,
-      Accept: 'application/vnd.github.v3+json',
-      'Content-Type': 'application/json'
-    };
-
-    // Check if file exists (get SHA for update)
-    let sha = null;
-    const check = await fetch(url, { headers });
-    if (check.ok) {
-      const existing = await check.json();
-      sha = existing.sha;
-    }
-
-    const body = {
-      message: `VITALS ${period.toUpperCase()} ${date}`,
-      content: toBase64(JSON.stringify(data, null, 2)),
-      ...(sha ? { sha } : {})
-    };
-
-    const res = await fetch(url, { method: 'PUT', headers, body: JSON.stringify(body) });
-    if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.message || `GitHub error ${res.status}`);
-    }
-    return true;
+  function toB64(str) { return btoa(unescape(encodeURIComponent(str))); }
+  function fromB64(b64) {
+    const bin=atob(b64.replace(/\n/g,''));
+    return new TextDecoder().decode(Uint8Array.from(bin,c=>c.charCodeAt(0)));
   }
 
   // ── State ──
-  let state = { period: isPM() ? 'pm' : 'am', sessions: [{ from: '', to: '' }] };
+  let state = {
+    tab: 'body',
+    energy: null, weight: null,
+    food: { drinks: [], breakfast: null, lunch: null, dinner: null, snacks: false, fruits: false, custom: [] },
+    eating_quality: null,
+    sessions: [{ from:'', to:'' }],
+    activities: Object.fromEntries(ACTIVITIES.map(a=>[a.key,0])),
+    damage: null, notes: ''
+  };
 
-  // ── Screens ──
-  function renderSetup() {
-    document.getElementById('app').innerHTML = `
-      <div class="screen">
-        <div class="header">
-          <div class="header-logo">
-            <div class="logo-icon">⚡</div>
-            <div class="logo-text">VITALS</div>
-          </div>
-        </div>
-        <div class="setup">
-          <div class="setup-icon">🔑</div>
-          <div class="setup-title">One-time setup</div>
-          <div class="setup-sub">Enter your GitHub PAT to start logging.<br>Stored locally on this device only.</div>
-          <input class="pat-input" id="pat-field" type="password"
-            placeholder="ghp_..." autocomplete="off" autocorrect="off" spellcheck="false" />
-          <div class="error-msg" id="setup-err"></div>
-          <div class="pat-note">Get it from: github.com → Settings → Developer settings → Personal access tokens<br>Needs <strong style="color:#a1a1aa">repo</strong> scope.</div>
-          <button class="submit-btn" onclick="saveSetup()">Save & Start</button>
-        </div>
-      </div>`;
-  }
+  // ── GitHub API ──
+  async function saveToday(patch) {
+    const pat = localStorage.getItem(PAT_KEY);
+    const date = today();
+    const path = `logs/${date}.json`;
+    const url  = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${path}`;
+    const hdrs = { Authorization:`token ${pat}`, Accept:'application/vnd.github.v3+json', 'Content-Type':'application/json' };
 
-  function saveSetup() {
-    const val = document.getElementById('pat-field').value.trim();
-    if (!val.startsWith('ghp_') && !val.startsWith('github_pat_')) {
-      document.getElementById('setup-err').textContent = 'Looks invalid — should start with ghp_ or github_pat_';
-      return;
+    let sha = null, existing = {};
+    const get = await fetch(url, { headers: hdrs });
+    if (get.ok) {
+      const j = await get.json();
+      sha = j.sha;
+      try { existing = JSON.parse(fromB64(j.content)); } catch {}
     }
-    localStorage.setItem(PAT_KEY, val);
-    renderForm();
+
+    const merged = { ...existing, date, ...patch };
+    // Merge food deeply
+    if (patch.food) merged.food = { ...(existing.food||{}), ...patch.food };
+    // Merge activities deeply
+    if (patch.activities) {
+      const acts = { ...(existing.activities||{}) };
+      Object.entries(patch.activities).forEach(([k,v]) => { if (v>0) acts[k]=v; });
+      merged.activities = Object.keys(acts).length ? acts : null;
+    }
+
+    const body = { message:`VITALS ${date}`, content: toB64(JSON.stringify(merged, null, 2)), ...(sha?{sha}:{}) };
+    const res = await fetch(url, { method:'PUT', headers: hdrs, body: JSON.stringify(body) });
+    if (!res.ok) { const e=await res.json(); throw new Error(e.message||`Error ${res.status}`); }
+    return merged;
   }
 
-  function renderForm() {
-    const period = state.period;
-    const date = dateLabel();
-
+  // ── Render ──
+  function render() {
+    const tab = state.tab;
     document.getElementById('app').innerHTML = `
       <div class="screen">
         <div class="header">
-          <div class="header-logo">
-            <div class="logo-icon">⚡</div>
-            <div class="logo-text">VITALS</div>
-          </div>
-          <div style="text-align:right">
-            <div class="header-date">${date}</div>
-            <div class="header-period">${period === 'am' ? '☀️ Morning' : '🌙 Evening'}</div>
-          </div>
+          <div class="logo"><div class="logo-icon">⚡</div><div class="logo-text">VITALS</div></div>
+          <div class="header-date">${dateLabel()}</div>
         </div>
-
-        <div class="period-toggle">
-          <button class="period-btn ${period==='am'?'active':''}"    onclick="switchPeriod('am')">☀️ Morning</button>
-          <button class="period-btn ${period==='sleep'?'active':''}" onclick="switchPeriod('sleep')">💤 Sleep</button>
-          <button class="period-btn ${period==='pm'?'active':''}"    onclick="switchPeriod('pm')">🌙 Evening</button>
+        <div class="tabs">
+          <button class="tab-btn ${tab==='body'  ?'active':''}" onclick="switchTab('body')">🫀 Body</button>
+          <button class="tab-btn ${tab==='food'  ?'active':''}" onclick="switchTab('food')">🍽 Food</button>
+          <button class="tab-btn ${tab==='sleep' ?'active':''}" onclick="switchTab('sleep')">💤 Sleep</button>
+          <button class="tab-btn ${tab==='day'   ?'active':''}" onclick="switchTab('day')">🌅 Day</button>
         </div>
-
-        <div id="form-body"></div>
+        <div id="tab-body"></div>
       </div>`;
-
-    if (period === 'am') renderMorning();
-    else if (period === 'sleep') renderSleep();
-    else renderEvening();
+    if (tab==='body')  renderBody();
+    if (tab==='food')  renderFood();
+    if (tab==='sleep') renderSleep();
+    if (tab==='day')   renderDay();
   }
 
-  function renderMorning() {
-    document.getElementById('form-body').innerHTML = `
+  function switchTab(t) { state.tab = t; render(); }
+
+  // ── BODY TAB ──
+  function renderBody() {
+    document.getElementById('tab-body').innerHTML = `
       <div class="section">
-        <div class="section-label">Energy level</div>
-        <div class="energy-row" style="flex-wrap:wrap;gap:8px">
-          ${[1,2,3,4,5,6,7,8,9,10].map(n => `<button class="energy-btn" id="e${n}" onclick="selectEnergy(${n})" style="min-width:44px;aspect-ratio:auto;padding:10px 0;border-radius:8px;flex:1">${n}</button>`).join('')}
+        <div class="section-label">Energy right now</div>
+        <div class="energy-row">
+          ${[1,2,3,4,5,6,7,8,9,10].map(n=>`<button class="e-btn ${state.energy===n?'selected':''}" id="e${n}" onclick="selEnergy(${n})">${n}</button>`).join('')}
         </div>
       </div>
-
       <div class="section">
         <div class="section-label">Weight (optional)</div>
-        <input type="number" class="number-input" id="weight" placeholder="e.g. 53.1" step="0.1" inputmode="decimal">
+        <input class="num-input" type="number" id="weight" placeholder="e.g. 53.1" step="0.1" inputmode="decimal" value="${state.weight||''}">
       </div>
-
-      <div class="error-msg" id="form-err"></div>
-      <button class="submit-btn" onclick="submitMorning()">Log Morning ☀️</button>
-    `;
+      <div class="err" id="body-err"></div>
+      <button class="save-btn" onclick="saveBody()">Save Body ⚡</button>`;
   }
 
-  function renderSleep() {
-    if (!state.sessions || state.sessions.length === 0) {
-      state.sessions = [{ from: '', to: '' }];
-    }
-    renderSessionList();
+  function selEnergy(n) {
+    state.energy = n;
+    [1,2,3,4,5,6,7,8,9,10].forEach(i => {
+      const el = document.getElementById(`e${i}`);
+      if (el) el.className = `e-btn${i===n?' selected':''}`;
+    });
   }
 
-  function renderSessionList() {
-    const sessions = state.sessions;
-    const total = sessions.reduce((sum, s) => {
-      const d = calcDuration(s.from, s.to);
-      return sum + (d || 0);
-    }, 0);
+  async function saveBody() {
+    const btn = document.querySelector('.save-btn');
+    const err = document.getElementById('body-err');
+    const w = parseFloat(document.getElementById('weight').value) || null;
+    if (!state.energy) { err.textContent = 'Select energy level'; return; }
+    state.weight = w;
+    btn.textContent = 'Saving…'; btn.disabled = true;
+    try {
+      await saveToday({ energy: state.energy, weight: w });
+      showSuccess('Body saved', [
+        { label:'⚡', val:`${state.energy}/10` },
+        ...(w?[{label:'⚖️', val:`${w}kg`}]:[])
+      ]);
+    } catch(e) { btn.textContent='Save Body ⚡'; btn.disabled=false; err.textContent=e.message; }
+  }
 
-    document.getElementById('form-body').innerHTML = `
+  // ── FOOD TAB ──
+  function renderFood() {
+    const f = state.food;
+    document.getElementById('tab-body').innerHTML = `
       <div class="section">
-        <div class="section-label">Sleep sessions today</div>
-        <div id="sessions-list">
-          ${sessions.map((s, i) => `
-            <div style="background:var(--card);border:1.5px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px">
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-                <span style="font-size:12px;color:var(--dim)">Session ${i + 1}</span>
-                ${sessions.length > 1 ? `<button onclick="removeSession(${i})" style="background:none;border:none;color:var(--red);font-size:18px;cursor:pointer;padding:0;line-height:1">×</button>` : ''}
-              </div>
-              <div class="time-row">
-                <div class="time-field">
-                  <label>Fell asleep</label>
-                  <input type="time" class="time-input" value="${s.from}"
-                    oninput="updateSession(${i},'from',this.value)">
-                </div>
-                <div class="time-field">
-                  <label>Woke up</label>
-                  <input type="time" class="time-input" value="${s.to}"
-                    oninput="updateSession(${i},'to',this.value)">
-                </div>
-              </div>
-              ${s.from && s.to ? `<div class="duration-display" style="margin-top:8px">Duration: <span>${fmtDuration(calcDuration(s.from, s.to))}</span></div>` : ''}
-            </div>
-          `).join('')}
+        <div class="section-label">Drinks</div>
+        <div class="chips">
+          ${DRINKS.map(d=>`<span class="chip ${f.drinks.includes(d.key)?'on-accent':''}" onclick="toggleDrink('${d.key}')">${d.label}</span>`).join('')}
         </div>
-
-        <button onclick="addSession()"
-          style="width:100%;padding:11px;background:transparent;border:1.5px dashed var(--border2);border-radius:10px;color:var(--dim);font-size:13px;cursor:pointer;margin-bottom:16px">
-          + Add another session
-        </button>
-
-        ${total > 0 ? `
-        <div style="background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.2);border-radius:10px;padding:12px 16px;text-align:center">
-          <span style="font-size:12px;color:var(--dim)">Total sleep today: </span>
-          <span style="font-size:15px;font-weight:700;color:#fff">${fmtDuration(total)}</span>
-        </div>` : ''}
       </div>
 
-      <div class="error-msg" id="form-err"></div>
-      <button class="submit-btn" onclick="submitSleep()">Log Sleep 💤</button>
-    `;
-  }
-
-  function addSession() {
-    state.sessions.push({ from: '', to: '' });
-    renderSessionList();
-  }
-
-  function removeSession(i) {
-    state.sessions.splice(i, 1);
-    renderSessionList();
-  }
-
-  function updateSession(i, field, val) {
-    state.sessions[i][field] = val;
-    // Re-render just the duration for this session without full re-render
-    const total = state.sessions.reduce((sum, s) => sum + (calcDuration(s.from, s.to) || 0), 0);
-    const totalEl = document.querySelector('[style*="Total sleep today"]');
-    // Lightweight update — just re-render the list
-    renderSessionList();
-  }
-
-  const ACTIVITIES = [
-    { key: 'office',   label: '💼 Office work'   },
-    { key: 'dev',      label: '💻 Personal dev'   },
-    { key: 'movies',   label: '🎬 Movies / Shows' },
-    { key: 'foosball', label: '🏓 Foosball'        },
-    { key: 'badminton',label: '🏸 Badminton'       },
-    { key: 'guitar',   label: '🎸 Guitar'          },
-    { key: 'gym',      label: '🏋️ Gym'            },
-    { key: 'walk',     label: '🚶 Walk / Run'      },
-  ];
-
-  function renderEvening() {
-    if (!state.activities) {
-      state.activities = Object.fromEntries(ACTIVITIES.map(a => [a.key, 0]));
-    }
-
-    document.getElementById('form-body').innerHTML = `
-
       <div class="section">
-        <div class="section-label">Activities — hours today</div>
-        <div style="background:var(--card);border:1.5px solid var(--border);border-radius:10px;padding:4px 14px">
-          ${ACTIVITIES.map(a => `
-            <div class="activity-row">
-              <span class="activity-label">${a.label}</span>
-              <div class="stepper">
-                <button class="stepper-btn" onclick="decActivity('${a.key}')">−</button>
-                <span class="stepper-val" id="act-${a.key}">${state.activities[a.key] > 0 ? fmtDuration(state.activities[a.key]) : '—'}</span>
-                <button class="stepper-btn" onclick="incActivity('${a.key}')">+</button>
+        <div class="section-label">Meals</div>
+        <div style="background:var(--card);border:1.5px solid var(--border);border-radius:10px;padding:4px 12px">
+          ${['breakfast','lunch','dinner'].map(meal=>`
+            <div class="meal-row">
+              <span class="meal-name">${meal[0].toUpperCase()+meal.slice(1)}</span>
+              <div class="meal-opts">
+                ${['skip','light','medium','heavy'].map(opt=>`
+                  <button class="meal-opt ${f[meal]===opt?'selected':''}" onclick="selMeal('${meal}','${opt}')">
+                    ${opt==='skip'?'—':opt[0].toUpperCase()+opt.slice(1)}
+                  </button>`).join('')}
               </div>
             </div>`).join('')}
         </div>
       </div>
 
       <div class="section">
-        <div class="section-label">Eating</div>
-        <div class="option-row">
-          <button class="opt-btn" id="eat-good" onclick="selectEating('good')">😊 Good</button>
-          <button class="opt-btn" id="eat-okay" onclick="selectEating('okay')">😐 Okay</button>
-          <button class="opt-btn" id="eat-bad"  onclick="selectEating('bad')">😔 Bad</button>
+        <div class="section-label">Snacks & more</div>
+        <div class="chips">
+          <span class="chip ${f.fruits?'on-green':''}"  onclick="toggleFood('fruits')">🍎 Fruits</span>
+          <span class="chip ${f.snacks?'on-amber':''}" onclick="toggleFood('snacks')">🍿 Snacks</span>
         </div>
+        <div class="custom-row">
+          <input class="custom-input" id="custom-food-input" placeholder="Add food… e.g. Biryani">
+          <button class="add-btn" onclick="addCustomFood()">Add</button>
+        </div>
+        ${f.custom.length ? `
+        <div class="custom-tags">
+          ${f.custom.map((c,i)=>`<span class="custom-tag" onclick="removeCustomFood(${i})">${c} ×</span>`).join('')}
+        </div>` : ''}
       </div>
 
       <div class="section">
-        <div class="section-label">Water</div>
-        <div class="option-row">
-          <button class="opt-btn" id="water-good" onclick="selectWater('good')">💧 Good</button>
-          <button class="opt-btn" id="water-bad"  onclick="selectWater('bad')">🌵 Bad</button>
+        <div class="section-label">Overall eating today</div>
+        <div class="chips">
+          <span class="chip ${state.eating_quality==='good'?'on-green':''}"  onclick="selEating('good')">😊 Good</span>
+          <span class="chip ${state.eating_quality==='okay'?'on-amber':''}" onclick="selEating('okay')">😐 Okay</span>
+          <span class="chip ${state.eating_quality==='bad'?'on-red':''}"   onclick="selEating('bad')">😔 Bad</span>
+        </div>
+      </div>
+
+      <div class="err" id="food-err"></div>
+      <button class="save-btn" onclick="saveFood()">Save Food 🍽</button>`;
+  }
+
+  function toggleDrink(key) {
+    const idx = state.food.drinks.indexOf(key);
+    if (idx>-1) state.food.drinks.splice(idx,1); else state.food.drinks.push(key);
+    renderFood();
+  }
+  function selMeal(meal, opt) { state.food[meal] = opt; renderFood(); }
+  function toggleFood(key) { state.food[key] = !state.food[key]; renderFood(); }
+  function selEating(val) { state.eating_quality = val; renderFood(); }
+  function addCustomFood() {
+    const v = document.getElementById('custom-food-input')?.value.trim();
+    if (v) { state.food.custom.push(v); renderFood(); }
+  }
+  function removeCustomFood(i) { state.food.custom.splice(i,1); renderFood(); }
+
+  async function saveFood() {
+    const btn = document.querySelector('.save-btn');
+    const err = document.getElementById('food-err');
+    btn.textContent = 'Saving…'; btn.disabled = true;
+    try {
+      await saveToday({ food: state.food, eating_quality: state.eating_quality });
+      const chips = [];
+      if (state.food.drinks.length) chips.push({label:'🥤', val:state.food.drinks.length+' drinks'});
+      if (state.food.lunch) chips.push({label:'🍛', val:'Lunch: '+state.food.lunch});
+      if (state.eating_quality) chips.push({label:'😊', val:state.eating_quality});
+      showSuccess('Food saved', chips);
+    } catch(e) { btn.textContent='Save Food 🍽'; btn.disabled=false; err.textContent=e.message; }
+  }
+
+  // ── SLEEP TAB ──
+  function renderSleep() {
+    if (!state.sessions.length) state.sessions = [{from:'',to:''}];
+    const total = state.sessions.reduce((s,x)=>s+(calcDur(x.from,x.to)||0),0);
+    document.getElementById('tab-body').innerHTML = `
+      <div class="section">
+        <div class="section-label">Sleep sessions today</div>
+        ${state.sessions.map((s,i)=>`
+          <div class="sleep-session">
+            <div class="session-header">
+              <span class="session-num">Session ${i+1}</span>
+              ${state.sessions.length>1?`<button class="remove-btn" onclick="removeSession(${i})">×</button>`:''}
+            </div>
+            <div class="time-row">
+              <div class="time-field" style="flex:1">
+                <label>Fell asleep</label>
+                <input type="time" class="time-input" value="${s.from}" oninput="updSession(${i},'from',this.value)">
+              </div>
+              <div class="time-field" style="flex:1">
+                <label>Woke up</label>
+                <input type="time" class="time-input" value="${s.to}" oninput="updSession(${i},'to',this.value)">
+              </div>
+            </div>
+            ${s.from&&s.to?`<div class="dur-label">Duration: <span>${fmtDur(calcDur(s.from,s.to))}</span></div>`:''}
+          </div>`).join('')}
+        <button class="add-session-btn" onclick="addSession()">+ Add another session</button>
+        ${total>0?`<div class="total-sleep">Total sleep today: <span>${fmtDur(total)}</span></div>`:''}
+      </div>
+      <div class="err" id="sleep-err"></div>
+      <button class="save-btn" onclick="saveSleep()">Save Sleep 💤</button>`;
+  }
+
+  function addSession() { state.sessions.push({from:'',to:''}); renderSleep(); }
+  function removeSession(i) { state.sessions.splice(i,1); renderSleep(); }
+  function updSession(i,f,v) { state.sessions[i][f]=v; renderSleep(); }
+
+  async function saveSleep() {
+    const btn = document.querySelector('.save-btn');
+    const err = document.getElementById('sleep-err');
+    const sessions = state.sessions.filter(s=>s.from&&s.to);
+    if (!sessions.length) { err.textContent='Add at least one complete session'; return; }
+    const built = sessions.map(s=>({from:to12h(s.from),to:to12h(s.to),duration:calcDur(s.from,s.to)}));
+    const total  = Math.round(built.reduce((a,s)=>a+s.duration,0)*100)/100;
+    btn.textContent='Saving…'; btn.disabled=true;
+    try {
+      await saveToday({ sleep:{ sessions:built, total } });
+      showSuccess('Sleep saved',[
+        {label:'💤', val:`${built.length} session${built.length>1?'s':''}`},
+        {label:'⏱', val:fmtDur(total)}
+      ]);
+    } catch(e) { btn.textContent='Save Sleep 💤'; btn.disabled=false; err.textContent=e.message; }
+  }
+
+  // ── DAY TAB ──
+  function renderDay() {
+    document.getElementById('tab-body').innerHTML = `
+      <div class="section">
+        <div class="section-label">Activities — hours today</div>
+        <div style="background:var(--card);border:1.5px solid var(--border);border-radius:10px;padding:4px 14px">
+          ${ACTIVITIES.map(a=>`
+            <div class="activity-row">
+              <span class="activity-label">${a.label}</span>
+              <div class="stepper">
+                <button class="s-btn" onclick="decAct('${a.key}')">−</button>
+                <span class="s-val" id="act-${a.key}">${state.activities[a.key]>0?fmtDur(state.activities[a.key]):'—'}</span>
+                <button class="s-btn" onclick="incAct('${a.key}')">+</button>
+              </div>
+            </div>`).join('')}
         </div>
       </div>
 
       <div class="section">
         <div class="section-label">Damage</div>
-        <div class="option-row">
-          ${[0,1,2,3,'4+'].map(n => `<button class="opt-btn" id="dmg-${n}" onclick="selectDamage('${n}')">${n}</button>`).join('')}
+        <div class="chips">
+          ${[0,1,2,3,'4+'].map(n=>`<span class="chip ${String(state.damage)===String(n)?'on-red':''}" onclick="selDamage('${n}')">${n}</span>`).join('')}
         </div>
       </div>
 
       <div class="section">
         <div class="section-label">Notes (optional)</div>
-        <textarea class="notes-input" id="notes" placeholder="Anything notable today…"></textarea>
+        <textarea class="txt-input" id="notes" placeholder="Anything notable…">${state.notes||''}</textarea>
       </div>
 
-      <div class="error-msg" id="form-err"></div>
-      <button class="submit-btn" onclick="submitEvening()">Log Evening 🌙</button>
-    `;
-
-    // Restore selections
-    if (state.eating)  selectEating(state.eating);
-    if (state.water)   selectWater(state.water);
-    if (state.damage != null) selectDamage(state.damage);
+      <div class="err" id="day-err"></div>
+      <button class="save-btn" onclick="saveDay()">Save Day 🌅</button>`;
   }
 
-  function renderSuccess(period, chips) {
+  function incAct(k) { state.activities[k]=Math.min((state.activities[k]||0)+0.5,16); const el=document.getElementById(`act-${k}`); if(el) el.textContent=state.activities[k]>0?fmtDur(state.activities[k]):'—'; }
+  function decAct(k) { state.activities[k]=Math.max((state.activities[k]||0)-0.5,0);  const el=document.getElementById(`act-${k}`); if(el) el.textContent=state.activities[k]>0?fmtDur(state.activities[k]):'—'; }
+  function selDamage(n) { state.damage=n; renderDay(); }
+
+  async function saveDay() {
+    const btn = document.querySelector('.save-btn');
+    const err = document.getElementById('day-err');
+    const notes = document.getElementById('notes').value.trim();
+    state.notes = notes;
+    const acts = Object.fromEntries(Object.entries(state.activities).filter(([,v])=>v>0));
+    btn.textContent='Saving…'; btn.disabled=true;
+    try {
+      await saveToday({ activities: acts, damage: state.damage, ...(notes?{notes}:{}) });
+      const chips=[];
+      const topAct=Object.entries(acts).sort((a,b)=>b[1]-a[1])[0];
+      if (topAct) chips.push({label:'🏆', val:`${topAct[0]}: ${fmtDur(topAct[1])}`});
+      if (state.damage!=null) chips.push({label:'📊', val:`damage: ${state.damage}`});
+      showSuccess('Day saved', chips);
+    } catch(e) { btn.textContent='Save Day 🌅'; btn.disabled=false; err.textContent=e.message; }
+  }
+
+  // ── Success ──
+  function showSuccess(title, chips) {
     document.getElementById('app').innerHTML = `
       <div class="screen">
         <div class="success">
           <div class="success-icon">✅</div>
-          <div class="success-title">${period === 'am' ? 'Morning' : period === 'sleep' ? 'Sleep' : 'Evening'} logged!</div>
-          <div class="success-meta">
-            ${chips.map(c => `<div class="success-chip">${c.label} <span>${c.value}</span></div>`).join('')}
+          <div class="success-title">${title}!</div>
+          <div class="success-chips">
+            ${chips.map(c=>`<span class="s-chip">${c.label} <b>${c.val}</b></span>`).join('')}
           </div>
           <div class="success-actions">
-            <a class="action-btn primary" href="${DASH}">View Life Dashboard</a>
-            ${period === 'am'
-              ? `<button class="action-btn secondary" onclick="switchPeriod('pm');renderForm()">Log Evening too →</button>`
-              : `<button class="action-btn secondary" onclick="switchPeriod('am');renderForm()">← Log Morning too</button>`
-            }
-            <button class="action-btn secondary" onclick="renderForm()">Log Again</button>
+            <a class="act-btn pri" href="${DASH}">View Life Dashboard</a>
+            <button class="act-btn sec" onclick="render()">Log More</button>
           </div>
         </div>
       </div>`;
   }
 
-  // ── Interactions ──
-  function switchPeriod(p) {
-    state.period = p;
-    renderForm();
+  // ── Setup ──
+  function renderSetup() {
+    document.getElementById('app').innerHTML = `
+      <div class="screen">
+        <div class="header"><div class="logo"><div class="logo-icon">⚡</div><div class="logo-text">VITALS</div></div></div>
+        <div class="setup">
+          <div style="font-size:38px">🔑</div>
+          <div style="font-size:17px;font-weight:700;color:#fff">One-time setup</div>
+          <div style="font-size:13px;color:var(--sub);line-height:1.5">Enter your GitHub PAT to start logging.<br>Stored locally on this device only.</div>
+          <input class="pat-input" id="pat-field" type="password" placeholder="ghp_…" autocomplete="off" spellcheck="false">
+          <div class="err" id="setup-err"></div>
+          <div class="pat-note">github.com → Settings → Developer settings → Personal access tokens · needs <b>repo</b> scope</div>
+          <button class="save-btn" onclick="saveSetup()">Save & Start</button>
+        </div>
+      </div>`;
   }
 
-  function selectSleep(val) {
-    document.getElementById('slept-yes').className = `opt-btn ${val==='yes'?'selected-green':''}`;
-    document.getElementById('slept-no').className  = `opt-btn ${val==='no' ?'selected-red':''}`;
-    document.getElementById('sleep-fields').style.display = val === 'yes' ? 'block' : 'none';
-    state.slept = val;
-  }
-
-  function updateDuration() {
-    const from = document.getElementById('sleep-from')?.value;
-    const to   = document.getElementById('sleep-to')?.value;
-    const dur  = calcDuration(from, to);
-    const el   = document.getElementById('duration-display');
-    if (el) el.innerHTML = `Duration: <span>${dur !== null ? fmtDuration(dur) : '—'}</span>`;
-  }
-
-  function selectEnergy(n) {
-    [1,2,3,4,5,6,7,8,9,10].forEach(i => {
-      document.getElementById(`e${i}`).className = `energy-btn${i===n?' selected':''}`;
-    });
-    state.energy = n;
-  }
-
-  function incActivity(key) {
-    if (!state.activities) state.activities = Object.fromEntries(ACTIVITIES.map(a => [a.key, 0]));
-    state.activities[key] = Math.min((state.activities[key] || 0) + 0.5, 16);
-    const el = document.getElementById(`act-${key}`);
-    if (el) el.textContent = state.activities[key] > 0 ? fmtDuration(state.activities[key]) : '—';
-  }
-
-  function decActivity(key) {
-    if (!state.activities) state.activities = Object.fromEntries(ACTIVITIES.map(a => [a.key, 0]));
-    state.activities[key] = Math.max((state.activities[key] || 0) - 0.5, 0);
-    const el = document.getElementById(`act-${key}`);
-    if (el) el.textContent = state.activities[key] > 0 ? fmtDuration(state.activities[key]) : '—';
-  }
-
-  function selectDamage(n) {
-    [0,1,2,3,'4+'].forEach(v => {
-      const el = document.getElementById(`dmg-${v}`);
-      if (el) el.className = `opt-btn${String(v)===String(n)?' selected-amber':''}`;
-    });
-    state.damage = n;
-  }
-
-
-  function selectEating(val) {
-    const map = { good:'selected-green', okay:'selected-amber', bad:'selected-red' };
-    ['good','okay','bad'].forEach(v => {
-      document.getElementById(`eat-${v}`).className = `opt-btn${v===val?' '+map[v]:''}`;
-    });
-    state.eating = val;
-  }
-
-  function selectWater(val) {
-    ['good','bad'].forEach(v => {
-      document.getElementById(`water-${v}`).className = `opt-btn${v===val?' '+(v==='good'?'selected-green':'selected-red'):''}`;
-    });
-    state.water = val;
-  }
-
-  // ── Submit ──
-  async function submitMorning() {
-    const btn = document.querySelector('.submit-btn');
-    const err = document.getElementById('form-err');
-    const energy = state.energy;
-    const weight = parseFloat(document.getElementById('weight').value) || null;
-
-    if (!energy) { err.textContent = 'Select energy level'; return; }
-
-    const data = { date: today(), energy, weight };
-
-    btn.textContent = 'Logging…'; btn.disabled = true; err.textContent = '';
-    try {
-      await writeToDB('am', data);
-      renderSuccess('am', [
-        { label: '⚡', value: `${energy}/10` },
-        ...(weight ? [{ label: '⚖️', value: `${weight}kg` }] : [])
-      ]);
-    } catch (e) {
-      btn.textContent = 'Log Morning ☀️'; btn.disabled = false;
-      err.textContent = e.message;
-    }
-  }
-
-  async function submitSleep() {
-    const btn = document.querySelector('.submit-btn');
-    const err = document.getElementById('form-err');
-    const sessions = state.sessions.filter(s => s.from && s.to);
-
-    if (!sessions.length) { err.textContent = 'Add at least one sleep session'; return; }
-
-    const built = sessions.map(s => ({
-      from:     to12h(s.from),
-      to:       to12h(s.to),
-      duration: calcDuration(s.from, s.to)
-    }));
-    const total = Math.round(built.reduce((sum, s) => sum + s.duration, 0) * 100) / 100;
-    const data  = { date: today(), sessions: built, total };
-
-    btn.textContent = 'Logging…'; btn.disabled = true; err.textContent = '';
-    try {
-      await writeToDB('sleep', data);
-      renderSuccess('sleep', [
-        { label: '💤', value: `${built.length} session${built.length > 1 ? 's' : ''}` },
-        { label: '⏱', value: fmtDuration(total) }
-      ]);
-      state.sessions = [{ from: '', to: '' }]; // reset
-    } catch (e) {
-      btn.textContent = 'Log Sleep 💤'; btn.disabled = false;
-      err.textContent = e.message;
-    }
-  }
-
-  async function submitEvening() {
-    const btn = document.querySelector('.submit-btn');
-    const err = document.getElementById('form-err');
-
-    if (!state.exercise) { err.textContent = 'Select exercise'; return; }
-    if (!state.eating)   { err.textContent = 'Select eating quality'; return; }
-    if (!state.water)    { err.textContent = 'Select water intake'; return; }
-
-    const notes = document.getElementById('notes').value.trim();
-    // Only save activities with hours > 0
-    const activities = Object.fromEntries(
-      Object.entries(state.activities || {}).filter(([, v]) => v > 0)
-    );
-    const data = {
-      date:       today(),
-      activities: Object.keys(activities).length ? activities : null,
-      eating:     state.eating,
-      water:      state.water,
-      damage:     state.damage ?? null,
-      ...(notes ? { notes } : {})
-    };
-
-    btn.textContent = 'Logging…'; btn.disabled = true; err.textContent = '';
-    try {
-      await writeToDB('pm', data);
-      renderSuccess('pm', [
-        { label: '💪', value: state.exercise },
-        { label: '🥗', value: state.eating },
-        { label: '💧', value: state.water }
-      ]);
-    } catch (e) {
-      btn.textContent = 'Log Evening 🌙'; btn.disabled = false;
-      err.textContent = e.message;
-    }
+  function saveSetup() {
+    const v = document.getElementById('pat-field').value.trim();
+    if (!v.startsWith('ghp_')&&!v.startsWith('github_pat_')) { document.getElementById('setup-err').textContent='Should start with ghp_ or github_pat_'; return; }
+    localStorage.setItem(PAT_KEY, v);
+    render();
   }
 
   // ── Init ──
-  if (!localStorage.getItem(PAT_KEY)) renderSetup();
-  else renderForm();
+  if (!localStorage.getItem(PAT_KEY)) renderSetup(); else render();
 </script>
 </body>
 </html>
