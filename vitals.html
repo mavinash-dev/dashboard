@@ -487,6 +487,29 @@
       </div>
 
       <div class="section">
+        <div class="section-label">Foosball (hours)</div>
+        <input type="number" class="number-input" id="foosball"
+          placeholder="0" step="0.5" min="0" inputmode="decimal">
+      </div>
+
+      <div class="section">
+        <div class="section-label">Sport / Activity</div>
+        <div class="option-row" style="flex-wrap:wrap">
+          ${['🏸 Badminton','🏊 Swimming','🚴 Cycling','🏃 Running','⚽ Football','🏏 Cricket','💃 Dance','❌ None'].map(s => {
+            const id = s.replace(/[^a-z]/gi,'').toLowerCase();
+            return `<button class="opt-btn" id="sp-${id}" onclick="selectSport('${id}','${s}')" style="flex:0 1 calc(50% - 4px)">${s}</button>`;
+          }).join('')}
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-label">Masturbation (count)</div>
+        <div class="option-row">
+          ${[0,1,2,3,'4+'].map(n => `<button class="opt-btn" id="mast-${n}" onclick="selectMast('${n}')">${n}</button>`).join('')}
+        </div>
+      </div>
+
+      <div class="section">
         <div class="section-label">Notes (optional)</div>
         <textarea class="notes-input" id="notes" placeholder="Anything notable today…"></textarea>
       </div>
@@ -543,6 +566,22 @@
       document.getElementById(`e${i}`).className = `energy-btn${i===n?' selected':''}`;
     });
     state.energy = n;
+  }
+
+  function selectSport(id, label) {
+    ['badminton','swimming','cycling','running','football','cricket','dance','none'].forEach(s => {
+      const el = document.getElementById(`sp-${s}`);
+      if (el) el.className = `opt-btn${s===id?' selected':''}`;
+    });
+    state.sport = id === 'none' ? null : label;
+  }
+
+  function selectMast(n) {
+    [0,1,2,3,'4+'].forEach(v => {
+      const el = document.getElementById(`mast-${v}`);
+      if (el) el.className = `opt-btn${String(v)===String(n)?' selected-amber':''}`;
+    });
+    state.masturbation = n;
   }
 
   function selectExercise(id) {
@@ -628,12 +667,16 @@
     if (!state.eating)   { err.textContent = 'Select eating quality'; return; }
     if (!state.water)    { err.textContent = 'Select water intake'; return; }
 
-    const notes = document.getElementById('notes').value.trim();
+    const notes     = document.getElementById('notes').value.trim();
+    const foosball  = parseFloat(document.getElementById('foosball').value) || 0;
     const data = {
       date: today(),
-      exercise: { done: state.exercise !== 'rest', type: state.exercise },
-      eating:   state.eating,
-      water:    state.water,
+      exercise:     { done: state.exercise !== 'rest', type: state.exercise },
+      eating:       state.eating,
+      water:        state.water,
+      foosball:     foosball || null,
+      sport:        state.sport || null,
+      masturbation: state.masturbation ?? null,
       ...(notes ? { notes } : {})
     };
 
