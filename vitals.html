@@ -96,8 +96,24 @@
     .opt-btn.selected-amber { border-color: var(--amber); color: var(--amber); background: rgba(245,158,11,0.1); }
     .opt-btn.selected-red   { border-color: var(--red);   color: var(--red);   background: rgba(239,68,68,0.1); }
 
-    /* Exercise grid */
-    .exercise-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    /* Activities */
+    .activity-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 11px 0; border-bottom: 1px solid var(--border);
+    }
+    .activity-row:last-child { border-bottom: none; }
+    .activity-label { font-size: 13px; color: var(--sub); display: flex; align-items: center; gap: 8px; }
+    .stepper { display: flex; align-items: center; gap: 10px; }
+    .stepper-btn {
+      width: 30px; height: 30px; border-radius: 50%;
+      background: var(--card); border: 1.5px solid var(--border2);
+      color: var(--text); font-size: 18px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      line-height: 1; transition: background 0.1s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .stepper-btn:active { background: var(--border2); }
+    .stepper-val { min-width: 40px; text-align: center; font-size: 13px; font-weight: 600; color: var(--text); }
 
     /* Energy dots */
     .energy-row { display: flex; gap: 10px; }
@@ -452,29 +468,45 @@
     renderSessionList();
   }
 
+  const ACTIVITIES = [
+    { key: 'office',   label: '💼 Office work'   },
+    { key: 'dev',      label: '💻 Personal dev'   },
+    { key: 'movies',   label: '🎬 Movies / Shows' },
+    { key: 'foosball', label: '🏓 Foosball'        },
+    { key: 'badminton',label: '🏸 Badminton'       },
+    { key: 'guitar',   label: '🎸 Guitar'          },
+    { key: 'gym',      label: '🏋️ Gym'            },
+    { key: 'walk',     label: '🚶 Walk / Run'      },
+  ];
+
   function renderEvening() {
+    if (!state.activities) {
+      state.activities = Object.fromEntries(ACTIVITIES.map(a => [a.key, 0]));
+    }
+
     document.getElementById('form-body').innerHTML = `
 
       <div class="section">
-        <div class="section-label">Exercise</div>
-        <div class="exercise-grid">
-          ${[
-            {id:'gym',  label:'🏋️ Gym'},
-            {id:'walk', label:'🚶 Walk'},
-            {id:'home', label:'🏠 Home'},
-            {id:'run',  label:'🏃 Run'},
-            {id:'other',label:'💪 Other'},
-            {id:'rest', label:'❌ Rest'},
-          ].map(e => `<button class="opt-btn" id="ex-${e.id}" onclick="selectExercise('${e.id}')">${e.label}</button>`).join('')}
+        <div class="section-label">Activities — hours today</div>
+        <div style="background:var(--card);border:1.5px solid var(--border);border-radius:10px;padding:4px 14px">
+          ${ACTIVITIES.map(a => `
+            <div class="activity-row">
+              <span class="activity-label">${a.label}</span>
+              <div class="stepper">
+                <button class="stepper-btn" onclick="decActivity('${a.key}')">−</button>
+                <span class="stepper-val" id="act-${a.key}">${state.activities[a.key] > 0 ? fmtDuration(state.activities[a.key]) : '—'}</span>
+                <button class="stepper-btn" onclick="incActivity('${a.key}')">+</button>
+              </div>
+            </div>`).join('')}
         </div>
       </div>
 
       <div class="section">
         <div class="section-label">Eating</div>
         <div class="option-row">
-          <button class="opt-btn" id="eat-good"  onclick="selectEating('good')">😊 Good</button>
-          <button class="opt-btn" id="eat-okay"  onclick="selectEating('okay')">😐 Okay</button>
-          <button class="opt-btn" id="eat-bad"   onclick="selectEating('bad')">😔 Bad</button>
+          <button class="opt-btn" id="eat-good" onclick="selectEating('good')">😊 Good</button>
+          <button class="opt-btn" id="eat-okay" onclick="selectEating('okay')">😐 Okay</button>
+          <button class="opt-btn" id="eat-bad"  onclick="selectEating('bad')">😔 Bad</button>
         </div>
       </div>
 
@@ -483,22 +515,6 @@
         <div class="option-row">
           <button class="opt-btn" id="water-good" onclick="selectWater('good')">💧 Good</button>
           <button class="opt-btn" id="water-bad"  onclick="selectWater('bad')">🌵 Bad</button>
-        </div>
-      </div>
-
-      <div class="section">
-        <div class="section-label">Foosball (hours)</div>
-        <input type="number" class="number-input" id="foosball"
-          placeholder="0" step="0.5" min="0" inputmode="decimal">
-      </div>
-
-      <div class="section">
-        <div class="section-label">Sport / Activity</div>
-        <div class="option-row" style="flex-wrap:wrap">
-          ${['🏸 Badminton','🏊 Swimming','🚴 Cycling','🏃 Running','⚽ Football','🏏 Cricket','💃 Dance','❌ None'].map(s => {
-            const id = s.replace(/[^a-z]/gi,'').toLowerCase();
-            return `<button class="opt-btn" id="sp-${id}" onclick="selectSport('${id}','${s}')" style="flex:0 1 calc(50% - 4px)">${s}</button>`;
-          }).join('')}
         </div>
       </div>
 
@@ -517,6 +533,11 @@
       <div class="error-msg" id="form-err"></div>
       <button class="submit-btn" onclick="submitEvening()">Log Evening 🌙</button>
     `;
+
+    // Restore selections
+    if (state.eating)  selectEating(state.eating);
+    if (state.water)   selectWater(state.water);
+    if (state.damage != null) selectDamage(state.damage);
   }
 
   function renderSuccess(period, chips) {
@@ -568,12 +589,18 @@
     state.energy = n;
   }
 
-  function selectSport(id, label) {
-    ['badminton','swimming','cycling','running','football','cricket','dance','none'].forEach(s => {
-      const el = document.getElementById(`sp-${s}`);
-      if (el) el.className = `opt-btn${s===id?' selected':''}`;
-    });
-    state.sport = id === 'none' ? null : label;
+  function incActivity(key) {
+    if (!state.activities) state.activities = Object.fromEntries(ACTIVITIES.map(a => [a.key, 0]));
+    state.activities[key] = Math.min((state.activities[key] || 0) + 0.5, 16);
+    const el = document.getElementById(`act-${key}`);
+    if (el) el.textContent = state.activities[key] > 0 ? fmtDuration(state.activities[key]) : '—';
+  }
+
+  function decActivity(key) {
+    if (!state.activities) state.activities = Object.fromEntries(ACTIVITIES.map(a => [a.key, 0]));
+    state.activities[key] = Math.max((state.activities[key] || 0) - 0.5, 0);
+    const el = document.getElementById(`act-${key}`);
+    if (el) el.textContent = state.activities[key] > 0 ? fmtDuration(state.activities[key]) : '—';
   }
 
   function selectDamage(n) {
@@ -584,12 +611,6 @@
     state.damage = n;
   }
 
-  function selectExercise(id) {
-    ['gym','walk','home','run','other','rest'].forEach(e => {
-      document.getElementById(`ex-${e}`).className = `opt-btn${e===id?' selected':''}`;
-    });
-    state.exercise = id;
-  }
 
   function selectEating(val) {
     const map = { good:'selected-green', okay:'selected-amber', bad:'selected-red' };
@@ -667,16 +688,17 @@
     if (!state.eating)   { err.textContent = 'Select eating quality'; return; }
     if (!state.water)    { err.textContent = 'Select water intake'; return; }
 
-    const notes     = document.getElementById('notes').value.trim();
-    const foosball  = parseFloat(document.getElementById('foosball').value) || 0;
+    const notes = document.getElementById('notes').value.trim();
+    // Only save activities with hours > 0
+    const activities = Object.fromEntries(
+      Object.entries(state.activities || {}).filter(([, v]) => v > 0)
+    );
     const data = {
-      date: today(),
-      exercise:     { done: state.exercise !== 'rest', type: state.exercise },
-      eating:       state.eating,
-      water:        state.water,
-      foosball:     foosball || null,
-      sport:        state.sport || null,
-      damage:       state.damage ?? null,
+      date:       today(),
+      activities: Object.keys(activities).length ? activities : null,
+      eating:     state.eating,
+      water:      state.water,
+      damage:     state.damage ?? null,
       ...(notes ? { notes } : {})
     };
 
