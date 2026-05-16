@@ -237,13 +237,30 @@
       try { existing = JSON.parse(fromB64(j.content)); } catch {}
     }
 
-    const merged = { ...existing, date, ...patch };
-    // Merge food deeply
-    if (patch.food) merged.food = { ...(existing.food||{}), ...patch.food };
-    // Merge activities deeply
+    const merged = { ...existing, date };
+    // Merge top-level fields — only overwrite if value is not null/undefined
+    Object.entries(patch).forEach(([k, v]) => {
+      if (k === 'food' || k === 'activities') return; // handled below
+      if (v !== null && v !== undefined) merged[k] = v;
+    });
+    // Merge food deeply — only update fields that have actual values
+    if (patch.food) {
+      const ef = existing.food || {};
+      const mf = { ...ef };
+      Object.entries(patch.food).forEach(([k, v]) => {
+        if (k === 'items') {
+          // Merge items arrays (append new, keep existing)
+          if (v && v.length > 0) mf.items = [...(ef.items||[]), ...v.filter(x => !(ef.items||[]).includes(x))];
+        } else if (v !== null && v !== undefined) {
+          mf[k] = v; // only update if explicitly set
+        }
+      });
+      merged.food = mf;
+    }
+    // Merge activities — only update hours > 0
     if (patch.activities) {
       const acts = { ...(existing.activities||{}) };
-      Object.entries(patch.activities).forEach(([k,v]) => { if (v>0) acts[k]=v; });
+      Object.entries(patch.activities).forEach(([k,v]) => { if (v > 0) acts[k] = v; });
       merged.activities = Object.keys(acts).length ? acts : null;
     }
 
