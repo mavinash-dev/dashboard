@@ -165,8 +165,53 @@
 </div>
 
 <script>
+  const PIN_HASH = '01771f461f65f60ba8ed4f22fb83b5cd461195d7bedc69f2027e09e21bd72c65';
   const _t = ['github_pat_11BT5ZT6Q0gy','kcszclHXtz_U8mfhrkUH','fpKgSsnowpdbOs8rpawgfFjMurfkMKRqj5O5CG','LPE5SE0aE3JE'];
   const GH = { Accept: 'application/vnd.github.v3+json', Authorization: `token ${_t.join('')}` };
+
+  async function sha256(str) {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+  }
+
+  async function checkPin() {
+    // Already unlocked this session
+    if (sessionStorage.getItem('life_unlocked') === 'true') { load(); return; }
+
+    document.getElementById('app').innerHTML = `
+      <div style="max-width:320px;margin:80px auto;text-align:center">
+        <div style="font-size:28px;margin-bottom:16px">🔒</div>
+        <div style="font-size:15px;font-weight:600;color:#fff;margin-bottom:6px">Life Dashboard</div>
+        <div style="font-size:12px;color:#52525b;margin-bottom:24px">Enter your PIN to continue</div>
+        <input id="pin-input" type="password" inputmode="numeric" maxlength="6"
+          placeholder="······"
+          style="width:100%;padding:12px 16px;background:#18181b;border:1px solid #27272a;border-radius:10px;color:#fff;font-size:20px;text-align:center;letter-spacing:8px;outline:none;font-family:monospace"
+          autofocus />
+        <div id="pin-error" style="margin-top:10px;font-size:12px;color:#ef4444;min-height:18px"></div>
+      </div>`;
+
+    document.getElementById('pin-input').addEventListener('keydown', async (e) => {
+      if (e.key === 'Enter') await verifyPin();
+    });
+    document.getElementById('pin-input').addEventListener('input', async (e) => {
+      if (e.target.value.length === 6) await verifyPin();
+    });
+  }
+
+  async function verifyPin() {
+    const input = document.getElementById('pin-input').value;
+    const hash = await sha256(input);
+    if (hash === PIN_HASH) {
+      sessionStorage.setItem('life_unlocked', 'true');
+      load();
+    } else {
+      const el = document.getElementById('pin-error');
+      el.textContent = 'Incorrect PIN';
+      document.getElementById('pin-input').value = '';
+      document.getElementById('pin-input').focus();
+      setTimeout(() => { if (el) el.textContent = ''; }, 2000);
+    }
+  }
 
   function decode(b64) {
     const bin = atob(b64.replace(/\n/g,''));
@@ -336,7 +381,7 @@
     }
   }
 
-  load();
+  checkPin();
 </script>
 </body>
 </html>
