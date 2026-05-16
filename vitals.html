@@ -503,9 +503,9 @@
       </div>
 
       <div class="section">
-        <div class="section-label">Masturbation (count)</div>
+        <div class="section-label">Damage</div>
         <div class="option-row">
-          ${[0,1,2,3,'4+'].map(n => `<button class="opt-btn" id="mast-${n}" onclick="selectMast('${n}')">${n}</button>`).join('')}
+          ${[0,1,2,3,'4+'].map(n => `<button class="opt-btn" id="dmg-${n}" onclick="selectDamage('${n}')">${n}</button>`).join('')}
         </div>
       </div>
 
@@ -576,12 +576,12 @@
     state.sport = id === 'none' ? null : label;
   }
 
-  function selectMast(n) {
+  function selectDamage(n) {
     [0,1,2,3,'4+'].forEach(v => {
-      const el = document.getElementById(`mast-${v}`);
+      const el = document.getElementById(`dmg-${v}`);
       if (el) el.className = `opt-btn${String(v)===String(n)?' selected-amber':''}`;
     });
-    state.masturbation = n;
+    state.damage = n;
   }
 
   function selectExercise(id) {
@@ -676,7 +676,7 @@
       water:        state.water,
       foosball:     foosball || null,
       sport:        state.sport || null,
-      masturbation: state.masturbation ?? null,
+      damage:       state.damage ?? null,
       ...(notes ? { notes } : {})
     };
 
