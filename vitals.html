@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="VITALS">
+  <title>VITALS</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #09090b;
+      --card: #111113;
+      --border: #1d1d20;
+      --border2: #27272a;
+      --text: #e4e4e7;
+      --sub: #71717a;
+      --dim: #52525b;
+      --accent: #6366f1;
+      --green: #22c55e;
+      --amber: #f59e0b;
+      --red: #ef4444;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      min-height: -webkit-fill-available;
+      padding: env(safe-area-inset-top, 20px) 20px env(safe-area-inset-bottom, 20px);
+      padding-top: max(env(safe-area-inset-top), 20px);
+      padding-bottom: max(env(safe-area-inset-bottom), 24px);
+    }
+
+    .screen { max-width: 420px; margin: 0 auto; }
+
+    /* Header */
+    .header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 28px; padding-top: 8px;
+    }
+    .header-logo {
+      display: flex; align-items: center; gap: 8px;
+    }
+    .logo-icon {
+      width: 34px; height: 34px; border-radius: 9px;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; font-weight: 800; color: #fff;
+    }
+    .logo-text { font-size: 17px; font-weight: 700; color: #fff; letter-spacing: -0.3px; }
+    .header-date { font-size: 12px; color: var(--dim); text-align: right; }
+    .header-period {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.5px;
+      text-transform: uppercase; color: var(--accent); margin-top: 2px;
+    }
+
+    /* Period toggle */
+    .period-toggle {
+      display: flex; gap: 6px; margin-bottom: 24px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 10px; padding: 4px;
+    }
+    .period-btn {
+      flex: 1; padding: 8px; border: none; border-radius: 7px;
+      font-size: 13px; font-weight: 500; cursor: pointer;
+      background: transparent; color: var(--dim); transition: all 0.15s;
+    }
+    .period-btn.active { background: var(--accent); color: #fff; }
+
+    /* Section */
+    .section { margin-bottom: 24px; }
+    .section-label {
+      font-size: 10px; text-transform: uppercase; letter-spacing: 0.7px;
+      color: var(--dim); font-weight: 600; margin-bottom: 10px;
+    }
+
+    /* Option row (pill buttons) */
+    .option-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .opt-btn {
+      flex: 1; min-width: 60px; padding: 12px 8px;
+      background: var(--card); border: 1.5px solid var(--border);
+      border-radius: 10px; color: var(--sub); font-size: 13px;
+      font-weight: 500; cursor: pointer; text-align: center;
+      transition: all 0.12s; -webkit-tap-highlight-color: transparent;
+    }
+    .opt-btn:active { transform: scale(0.97); }
+    .opt-btn.selected {
+      border-color: var(--accent); color: var(--accent);
+      background: rgba(99,102,241,0.1);
+    }
+    .opt-btn.selected-green { border-color: var(--green); color: var(--green); background: rgba(34,197,94,0.1); }
+    .opt-btn.selected-amber { border-color: var(--amber); color: var(--amber); background: rgba(245,158,11,0.1); }
+    .opt-btn.selected-red   { border-color: var(--red);   color: var(--red);   background: rgba(239,68,68,0.1); }
+
+    /* Exercise grid */
+    .exercise-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+
+    /* Energy dots */
+    .energy-row { display: flex; gap: 10px; }
+    .energy-btn {
+      flex: 1; aspect-ratio: 1; border-radius: 50%;
+      background: var(--card); border: 1.5px solid var(--border);
+      color: var(--sub); font-size: 15px; font-weight: 700;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: all 0.12s; -webkit-tap-highlight-color: transparent;
+    }
+    .energy-btn.selected { background: var(--amber); border-color: var(--amber); color: #000; }
+
+    /* Time inputs */
+    .time-row { display: flex; gap: 10px; }
+    .time-field { flex: 1; }
+    .time-field label { font-size: 11px; color: var(--dim); margin-bottom: 6px; display: block; }
+    .time-input {
+      width: 100%; padding: 12px 14px; background: var(--card);
+      border: 1.5px solid var(--border); border-radius: 10px;
+      color: var(--text); font-size: 16px; outline: none;
+      -webkit-appearance: none; color-scheme: dark;
+    }
+    .time-input:focus { border-color: var(--accent); }
+    .duration-display {
+      text-align: center; font-size: 12px; color: var(--sub); margin-top: 8px;
+    }
+    .duration-display span { color: var(--text); font-weight: 600; }
+
+    /* Number input */
+    .number-input {
+      width: 100%; padding: 12px 14px; background: var(--card);
+      border: 1.5px solid var(--border); border-radius: 10px;
+      color: var(--text); font-size: 16px; outline: none;
+      -webkit-appearance: none;
+    }
+    .number-input:focus { border-color: var(--accent); }
+    .number-input::placeholder { color: var(--dim); }
+
+    /* Notes */
+    .notes-input {
+      width: 100%; padding: 12px 14px; background: var(--card);
+      border: 1.5px solid var(--border); border-radius: 10px;
+      color: var(--text); font-size: 14px; outline: none;
+      resize: none; height: 72px; font-family: inherit;
+      color-scheme: dark;
+    }
+    .notes-input:focus { border-color: var(--accent); }
+    .notes-input::placeholder { color: var(--dim); }
+
+    /* Submit */
+    .submit-btn {
+      width: 100%; padding: 16px; border: none; border-radius: 12px;
+      background: var(--accent); color: #fff; font-size: 15px;
+      font-weight: 600; cursor: pointer; letter-spacing: 0.2px;
+      margin-top: 8px; transition: opacity 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .submit-btn:active { opacity: 0.85; }
+    .submit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .submit-btn.loading { opacity: 0.7; }
+
+    /* Success screen */
+    .success {
+      text-align: center; padding: 40px 0;
+      display: flex; flex-direction: column; align-items: center; gap: 16px;
+    }
+    .success-icon { font-size: 52px; }
+    .success-title { font-size: 20px; font-weight: 700; color: #fff; }
+    .success-meta { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+    .success-chip {
+      padding: 6px 14px; background: var(--card); border: 1px solid var(--border);
+      border-radius: 20px; font-size: 13px; color: var(--sub);
+    }
+    .success-chip span { color: var(--text); font-weight: 600; }
+    .success-actions { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+    .action-btn {
+      width: 100%; padding: 14px; border-radius: 12px; font-size: 14px;
+      font-weight: 500; cursor: pointer; text-align: center;
+      text-decoration: none; display: block; transition: opacity 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .action-btn.primary { background: var(--accent); color: #fff; border: none; }
+    .action-btn.secondary {
+      background: var(--card); color: var(--sub);
+      border: 1.5px solid var(--border);
+    }
+    .action-btn:active { opacity: 0.8; }
+
+    /* Setup screen */
+    .setup {
+      padding: 40px 0; text-align: center;
+      display: flex; flex-direction: column; gap: 16px;
+    }
+    .setup-icon { font-size: 40px; }
+    .setup-title { font-size: 18px; font-weight: 700; color: #fff; }
+    .setup-sub { font-size: 13px; color: var(--sub); line-height: 1.5; }
+    .pat-input {
+      width: 100%; padding: 12px 14px; background: var(--card);
+      border: 1.5px solid var(--border); border-radius: 10px;
+      color: var(--text); font-size: 13px; outline: none;
+      font-family: monospace; text-align: left;
+    }
+    .pat-input:focus { border-color: var(--accent); }
+    .pat-note { font-size: 11px; color: var(--dim); text-align: left; line-height: 1.5; }
+
+    /* Error */
+    .error-msg { font-size: 12px; color: var(--red); margin-top: 6px; min-height: 16px; }
+  </style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+  const OWNER  = 'mavinash-dev';
+  const REPO   = 'life-log';
+  const PAT_KEY = 'vitals_pat';
+  const DASH   = 'https://mavinash-dev.github.io/dashboard/life.html';
+
+  // ── Utilities ──
+  function today() {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  }
+
+  function dateLabel() {
+    return new Date().toLocaleDateString('en-IN', { day:'numeric', month:'long', year:'numeric' });
+  }
+
+  function isPM() { return new Date().getHours() >= 14; }
+
+  function to12h(t) {
+    if (!t) return '';
+    const [h, m] = t.split(':').map(Number);
+    const ap = h < 12 ? 'AM' : 'PM';
+    const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+    return `${String(h12).padStart(2,'0')}:${String(m).padStart(2,'0')} ${ap}`;
+  }
+
+  function calcDuration(from, to) {
+    if (!from || !to) return null;
+    const [fh, fm] = from.split(':').map(Number);
+    const [th, tm] = to.split(':').map(Number);
+    let fromM = fh * 60 + fm, toM = th * 60 + tm;
+    if (toM <= fromM) toM += 1440;
+    return Math.round((toM - fromM) / 60 * 100) / 100;
+  }
+
+  function fmtDuration(h) {
+    if (!h && h !== 0) return '—';
+    const hrs = Math.floor(h), mins = Math.round((h - hrs) * 60);
+    return mins ? `${hrs}h ${mins}m` : `${hrs}h`;
+  }
+
+  function toBase64(str) {
+    return btoa(unescape(encodeURIComponent(str)));
+  }
+
+  // ── GitHub API ──
+  async function writeToDB(period, data) {
+    const pat = localStorage.getItem(PAT_KEY);
+    const date = today();
+    const path = `logs/${date}-${period}.json`;
+    const url = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${path}`;
+    const headers = {
+      Authorization: `token ${pat}`,
+      Accept: 'application/vnd.github.v3+json',
+      'Content-Type': 'application/json'
+    };
+
+    // Check if file exists (get SHA for update)
+    let sha = null;
+    const check = await fetch(url, { headers });
+    if (check.ok) {
+      const existing = await check.json();
+      sha = existing.sha;
+    }
+
+    const body = {
+      message: `VITALS ${period.toUpperCase()} ${date}`,
+      content: toBase64(JSON.stringify(data, null, 2)),
+      ...(sha ? { sha } : {})
+    };
+
+    const res = await fetch(url, { method: 'PUT', headers, body: JSON.stringify(body) });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.message || `GitHub error ${res.status}`);
+    }
+    return true;
+  }
+
+  // ── State ──
+  let state = { period: isPM() ? 'pm' : 'am' };
+
+  // ── Screens ──
+  function renderSetup() {
+    document.getElementById('app').innerHTML = `
+      <div class="screen">
+        <div class="header">
+          <div class="header-logo">
+            <div class="logo-icon">⚡</div>
+            <div class="logo-text">VITALS</div>
+          </div>
+        </div>
+        <div class="setup">
+          <div class="setup-icon">🔑</div>
+          <div class="setup-title">One-time setup</div>
+          <div class="setup-sub">Enter your GitHub PAT to start logging.<br>Stored locally on this device only.</div>
+          <input class="pat-input" id="pat-field" type="password"
+            placeholder="ghp_..." autocomplete="off" autocorrect="off" spellcheck="false" />
+          <div class="error-msg" id="setup-err"></div>
+          <div class="pat-note">Get it from: github.com → Settings → Developer settings → Personal access tokens<br>Needs <strong style="color:#a1a1aa">repo</strong> scope.</div>
+          <button class="submit-btn" onclick="saveSetup()">Save & Start</button>
+        </div>
+      </div>`;
+  }
+
+  function saveSetup() {
+    const val = document.getElementById('pat-field').value.trim();
+    if (!val.startsWith('ghp_') && !val.startsWith('github_pat_')) {
+      document.getElementById('setup-err').textContent = 'Looks invalid — should start with ghp_ or github_pat_';
+      return;
+    }
+    localStorage.setItem(PAT_KEY, val);
+    renderForm();
+  }
+
+  function renderForm() {
+    const period = state.period;
+    const date = dateLabel();
+
+    document.getElementById('app').innerHTML = `
+      <div class="screen">
+        <div class="header">
+          <div class="header-logo">
+            <div class="logo-icon">⚡</div>
+            <div class="logo-text">VITALS</div>
+          </div>
+          <div style="text-align:right">
+            <div class="header-date">${date}</div>
+            <div class="header-period">${period === 'am' ? '☀️ Morning' : '🌙 Evening'}</div>
+          </div>
+        </div>
+
+        <div class="period-toggle">
+          <button class="period-btn ${period==='am'?'active':''}" onclick="switchPeriod('am')">☀️ Morning</button>
+          <button class="period-btn ${period==='pm'?'active':''}" onclick="switchPeriod('pm')">🌙 Evening</button>
+        </div>
+
+        <div id="form-body"></div>
+      </div>`;
+
+    period === 'am' ? renderMorning() : renderEvening();
+  }
+
+  function renderMorning() {
+    document.getElementById('form-body').innerHTML = `
+
+      <div class="section">
+        <div class="section-label">Did you sleep?</div>
+        <div class="option-row">
+          <button class="opt-btn selected-green" id="slept-yes" onclick="selectSleep('yes')">😴 Slept</button>
+          <button class="opt-btn" id="slept-no" onclick="selectSleep('no')">☠️ All-nighter</button>
+        </div>
+      </div>
+
+      <div id="sleep-fields" class="section">
+        <div class="section-label">Sleep window</div>
+        <div class="time-row">
+          <div class="time-field">
+            <label>Slept at</label>
+            <input type="time" class="time-input" id="sleep-from" value="02:00" oninput="updateDuration()">
+          </div>
+          <div class="time-field">
+            <label>Woke at</label>
+            <input type="time" class="time-input" id="sleep-to" value="09:00" oninput="updateDuration()">
+          </div>
+        </div>
+        <div class="duration-display" id="duration-display">Duration: <span>7h 0m</span></div>
+      </div>
+
+      <div class="section">
+        <div class="section-label">Energy level</div>
+        <div class="energy-row">
+          ${[1,2,3,4,5].map(n => `<button class="energy-btn" id="e${n}" onclick="selectEnergy(${n})">${n}</button>`).join('')}
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-label">Weight (optional)</div>
+        <input type="number" class="number-input" id="weight" placeholder="e.g. 53.1" step="0.1" inputmode="decimal">
+      </div>
+
+      <div class="error-msg" id="form-err"></div>
+      <button class="submit-btn" onclick="submitMorning()">Log Morning ☀️</button>
+    `;
+
+    selectSleep('yes');
+    updateDuration();
+  }
+
+  function renderEvening() {
+    document.getElementById('form-body').innerHTML = `
+
+      <div class="section">
+        <div class="section-label">Exercise</div>
+        <div class="exercise-grid">
+          ${[
+            {id:'gym',  label:'🏋️ Gym'},
+            {id:'walk', label:'🚶 Walk'},
+            {id:'home', label:'🏠 Home'},
+            {id:'run',  label:'🏃 Run'},
+            {id:'other',label:'💪 Other'},
+            {id:'rest', label:'❌ Rest'},
+          ].map(e => `<button class="opt-btn" id="ex-${e.id}" onclick="selectExercise('${e.id}')">${e.label}</button>`).join('')}
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-label">Eating</div>
+        <div class="option-row">
+          <button class="opt-btn" id="eat-good"  onclick="selectEating('good')">😊 Good</button>
+          <button class="opt-btn" id="eat-okay"  onclick="selectEating('okay')">😐 Okay</button>
+          <button class="opt-btn" id="eat-bad"   onclick="selectEating('bad')">😔 Bad</button>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-label">Water</div>
+        <div class="option-row">
+          <button class="opt-btn" id="water-good" onclick="selectWater('good')">💧 Good</button>
+          <button class="opt-btn" id="water-bad"  onclick="selectWater('bad')">🌵 Bad</button>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-label">Notes (optional)</div>
+        <textarea class="notes-input" id="notes" placeholder="Anything notable today…"></textarea>
+      </div>
+
+      <div class="error-msg" id="form-err"></div>
+      <button class="submit-btn" onclick="submitEvening()">Log Evening 🌙</button>
+    `;
+  }
+
+  function renderSuccess(period, chips) {
+    document.getElementById('app').innerHTML = `
+      <div class="screen">
+        <div class="success">
+          <div class="success-icon">✅</div>
+          <div class="success-title">${period === 'am' ? 'Morning' : 'Evening'} logged!</div>
+          <div class="success-meta">
+            ${chips.map(c => `<div class="success-chip">${c.label} <span>${c.value}</span></div>`).join('')}
+          </div>
+          <div class="success-actions">
+            <a class="action-btn primary" href="${DASH}">View Life Dashboard</a>
+            ${period === 'am'
+              ? `<button class="action-btn secondary" onclick="switchPeriod('pm');renderForm()">Log Evening too →</button>`
+              : `<button class="action-btn secondary" onclick="switchPeriod('am');renderForm()">← Log Morning too</button>`
+            }
+            <button class="action-btn secondary" onclick="renderForm()">Log Again</button>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  // ── Interactions ──
+  function switchPeriod(p) {
+    state.period = p;
+    renderForm();
+  }
+
+  function selectSleep(val) {
+    document.getElementById('slept-yes').className = `opt-btn ${val==='yes'?'selected-green':''}`;
+    document.getElementById('slept-no').className  = `opt-btn ${val==='no' ?'selected-red':''}`;
+    document.getElementById('sleep-fields').style.display = val === 'yes' ? 'block' : 'none';
+    state.slept = val;
+  }
+
+  function updateDuration() {
+    const from = document.getElementById('sleep-from')?.value;
+    const to   = document.getElementById('sleep-to')?.value;
+    const dur  = calcDuration(from, to);
+    const el   = document.getElementById('duration-display');
+    if (el) el.innerHTML = `Duration: <span>${dur !== null ? fmtDuration(dur) : '—'}</span>`;
+  }
+
+  function selectEnergy(n) {
+    [1,2,3,4,5].forEach(i => {
+      document.getElementById(`e${i}`).className = `energy-btn${i===n?' selected':''}`;
+    });
+    state.energy = n;
+  }
+
+  function selectExercise(id) {
+    ['gym','walk','home','run','other','rest'].forEach(e => {
+      document.getElementById(`ex-${e}`).className = `opt-btn${e===id?' selected':''}`;
+    });
+    state.exercise = id;
+  }
+
+  function selectEating(val) {
+    const map = { good:'selected-green', okay:'selected-amber', bad:'selected-red' };
+    ['good','okay','bad'].forEach(v => {
+      document.getElementById(`eat-${v}`).className = `opt-btn${v===val?' '+map[v]:''}`;
+    });
+    state.eating = val;
+  }
+
+  function selectWater(val) {
+    ['good','bad'].forEach(v => {
+      document.getElementById(`water-${v}`).className = `opt-btn${v===val?' '+(v==='good'?'selected-green':'selected-red'):''}`;
+    });
+    state.water = val;
+  }
+
+  // ── Submit ──
+  async function submitMorning() {
+    const btn = document.querySelector('.submit-btn');
+    const err = document.getElementById('form-err');
+
+    const slept = state.slept !== 'no';
+    const from  = document.getElementById('sleep-from')?.value;
+    const to    = document.getElementById('sleep-to')?.value;
+    const dur   = slept ? calcDuration(from, to) : 0;
+    const energy = state.energy;
+    const weight = parseFloat(document.getElementById('weight').value) || null;
+
+    if (slept && (!from || !to)) { err.textContent = 'Enter sleep times'; return; }
+    if (!energy) { err.textContent = 'Select energy level'; return; }
+
+    const data = {
+      date: today(),
+      sleep: {
+        from: slept ? to12h(from) : null,
+        to:   slept ? to12h(to)   : null,
+        duration: dur,
+        skipped: !slept
+      },
+      energy,
+      weight
+    };
+
+    btn.textContent = 'Logging…'; btn.disabled = true; err.textContent = '';
+    try {
+      await writeToDB('am', data);
+      renderSuccess('am', [
+        { label: '😴', value: slept ? fmtDuration(dur) : 'all-nighter' },
+        { label: '⚡', value: `${energy}/5` },
+        ...(weight ? [{ label: '⚖️', value: `${weight}kg` }] : [])
+      ]);
+    } catch (e) {
+      btn.textContent = 'Log Morning ☀️'; btn.disabled = false;
+      err.textContent = e.message;
+    }
+  }
+
+  async function submitEvening() {
+    const btn = document.querySelector('.submit-btn');
+    const err = document.getElementById('form-err');
+
+    if (!state.exercise) { err.textContent = 'Select exercise'; return; }
+    if (!state.eating)   { err.textContent = 'Select eating quality'; return; }
+    if (!state.water)    { err.textContent = 'Select water intake'; return; }
+
+    const notes = document.getElementById('notes').value.trim();
+    const data = {
+      date: today(),
+      exercise: { done: state.exercise !== 'rest', type: state.exercise },
+      eating:   state.eating,
+      water:    state.water,
+      ...(notes ? { notes } : {})
+    };
+
+    btn.textContent = 'Logging…'; btn.disabled = true; err.textContent = '';
+    try {
+      await writeToDB('pm', data);
+      renderSuccess('pm', [
+        { label: '💪', value: state.exercise },
+        { label: '🥗', value: state.eating },
+        { label: '💧', value: state.water }
+      ]);
+    } catch (e) {
+      btn.textContent = 'Log Evening 🌙'; btn.disabled = false;
+      err.textContent = e.message;
+    }
+  }
+
+  // ── Init ──
+  if (!localStorage.getItem(PAT_KEY)) renderSetup();
+  else renderForm();
+</script>
+</body>
+</html>
