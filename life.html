@@ -165,9 +165,7 @@
 </div>
 
 <script>
-  const OWNER = 'mavinash-dev';
-  const LIFE_REPO = 'life-log';
-  const _t = ['github_pat_11BT5Z','T6Q0Ilf1uAEYEi2q_','fUguxaKyIPfpmAMY7VLM1Wd','2El2KJCCKBMeTtV90dR8KUBUD6IKKLnCNQGk'];
+  const _t = ['github_pat_11BT5ZT6Q0gy','kcszclHXtz_U8mfhrkUH','fpKgSsnowpdbOs8rpawgfFjMurfkMKRqj5O5CG','LPE5SE0aE3JE'];
   const GH = { Accept: 'application/vnd.github.v3+json', Authorization: `token ${_t.join('')}` };
 
   function decode(b64) {
@@ -175,298 +173,166 @@
     return new TextDecoder().decode(Uint8Array.from(bin, c => c.charCodeAt(0)));
   }
 
-  // ── Fetch all log files ──
-  async function fetchLogs() {
-    const res = await fetch(`https://api.github.com/repos/${OWNER}/${LIFE_REPO}/contents/logs`, { headers: GH });
-    if (!res.ok) return [];
-    const files = await res.json();
-    const jsonFiles = files.filter(f => f.name.endsWith('.json') && f.name !== '2026-05-16.json');
-    const fetched = await Promise.allSettled(jsonFiles.map(f =>
-      fetch(f.url, { headers: GH }).then(r => r.json()).then(j => ({ name: f.name, data: JSON.parse(decode(j.content)) }))
-    ));
-    return fetched.filter(r => r.status === 'fulfilled').map(r => r.value);
-  }
-
-  // ── Merge AM + PM into daily records ──
-  function mergeDays(files) {
-    const days = {};
-    for (const { name, data } of files) {
-      const date = name.replace('-am.json','').replace('-pm.json','');
-      if (!days[date]) days[date] = { date };
-      Object.assign(days[date], data);
-    }
-    return Object.values(days).sort((a,b) => a.date.localeCompare(b.date));
-  }
-
-  // ── Analytics ──
-  function calcStreak(days, fn) {
-    let streak = 0;
-    const sorted = [...days].reverse();
-    for (const d of sorted) {
-      if (fn(d)) streak++;
-      else break;
-    }
-    return streak;
-  }
-
-  function avg(arr) { return arr.length ? arr.reduce((a,b) => a+b, 0) / arr.length : 0; }
-
-  function weeklyScore(days) {
-    const thisWeek = days.filter(d => {
-      const diff = Math.floor((Date.now() - new Date(d.date)) / 86400000);
-      return diff <= 7;
-    });
-    if (!thisWeek.length) return 0;
-    const scores = thisWeek.map(d => {
-      let s = 0, t = 0;
-      if (d.sleep !== undefined) { t++; if (d.sleep?.duration >= 6) s++; }
-      if (d.exercise !== undefined) { t++; if (d.exercise?.done) s++; }
-      if (d.eating !== undefined) { t++; if (d.eating === '😊 Good') s++; }
-      if (d.water !== undefined) { t++; if (d.water === '💧 Good') s++; }
-      if (d.energy !== undefined) { t++; if (d.energy >= 3) s++; }
-      return t ? (s / t) * 100 : 0;
-    });
-    return Math.round(avg(scores));
-  }
-
-  function sleepQuality(duration, skipped) {
-    if (skipped) return 'none';
-    if (!duration && duration !== 0) return null;
-    if (duration >= 7) return 'great';
-    if (duration >= 6) return 'good';
-    return 'short';
-  }
-
-  function bedTimeHour(from) {
-    if (!from || from === 'null') return null;
-    const [time, ampm] = from.trim().split(' ');
-    let [h] = time.split(':').map(Number);
-    if (ampm?.toLowerCase() === 'pm' && h < 12) h += 12;
-    if (ampm?.toLowerCase() === 'am' && h === 12) h = 0;
-    return h;
-  }
-
   function fmtHours(h) {
-    if (h === null || h === undefined) return '—';
-    const hours = Math.floor(h);
-    const mins = Math.round((h - hours) * 60);
-    return mins ? `${hours}h ${mins}m` : `${hours}h`;
-  }
-
-  function dayLabel(dateStr) {
-    return new Date(dateStr + 'T12:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' });
-  }
-
-  // ── Render ──
-  function render(days) {
-    const sleepDays    = days.filter(d => d.sleep);
-    const sleepDurations = sleepDays.filter(d => !d.sleep?.skipped).map(d => d.sleep?.duration).filter(Boolean);
-    const avgSleepHrs  = avg(sleepDurations);
-    const bedTimes     = sleepDays.map(d => bedTimeHour(d.sleep?.from)).filter(h => h !== null);
-    const avgBedTime   = avg(bedTimes);
-    const wkScore      = weeklyScore(days);
-    const last7        = days.slice(-7);
-    const energies     = days.filter(d => d.energy).map(d => d.energy);
-
-    const streaks = {
-      sleep:    calcStreak(days, d => d.sleep && !d.sleep.skipped && d.sleep.duration >= 6),
-      exercise: calcStreak(days, d => d.exercise?.done),
-      eating:   calcStreak(days, d => d.eating === '😊 Good'),
-      water:    calcStreak(days, d => d.water === '💧 Good'),
-    };
-
-    const bestStreak = Math.max(...Object.values(streaks));
-
-    // Insights
-    const insights = [];
-
-    if (sleepDurations.length >= 3) {
-      if (avgSleepHrs < 7) insights.push({ icon: '😴', text: `You're averaging <strong>${fmtHours(avgSleepHrs)}</strong> sleep — ${fmtHours(7 - avgSleepHrs)} below the 7h target.` });
-      else insights.push({ icon: '✅', text: `Great sleep! Averaging <strong>${fmtHours(avgSleepHrs)}</strong> — above the 7h target.` });
-    }
-
-    if (bedTimes.length >= 3) {
-      const h = Math.floor(avgBedTime);
-      const m = Math.round((avgBedTime - h) * 60);
-      const ampm = h >= 12 ? 'AM (next day)' : 'PM';
-      const displayH = h > 12 ? h - 12 : h === 0 ? 12 : h;
-      insights.push({ icon: '🕐', text: `You go to bed at <strong>${displayH}:${String(m).padStart(2,'0')} ${ampm}</strong> on average.` });
-    }
-
-    if (energies.length >= 3 && sleepDurations.length >= 3) {
-      const goodSleepEnergy = days.filter(d => d.sleep?.duration >= 7 && d.energy).map(d => d.energy);
-      const poorSleepEnergy = days.filter(d => d.sleep?.duration < 6 && !d.sleep?.skipped && d.energy).map(d => d.energy);
-      if (goodSleepEnergy.length && poorSleepEnergy.length) {
-        const diff = (avg(goodSleepEnergy) - avg(poorSleepEnergy)).toFixed(1);
-        if (diff > 0) insights.push({ icon: '⚡', text: `On good sleep nights, your energy is <strong>${diff} points higher</strong> the next day.` });
-      }
-    }
-
-    const exerciseDays = days.filter(d => d.exercise?.done).length;
-    if (days.length >= 3) {
-      const pct = Math.round((exerciseDays / days.length) * 100);
-      insights.push({ icon: '💪', text: `You exercised on <strong>${pct}% of logged days</strong> (${exerciseDays}/${days.length} days).` });
-    }
-
-    if (days.length < 3) {
-      insights.push({ icon: '📊', text: `Log for <strong>${3 - days.length} more day${3 - days.length > 1 ? 's' : ''}</strong> to start seeing patterns.` });
-    }
-
-    // Heatmap — last 30 days
-    const heatmapDays = [];
-    for (let i = 29; i >= 0; i--) {
-      const d = new Date(); d.setDate(d.getDate() - i);
-      const key = d.toISOString().split('T')[0];
-      const log = days.find(x => x.date === key);
-      heatmapDays.push({ key, log });
-    }
-
-    document.getElementById('app').innerHTML = `
-      <div class="stats-strip">
-        <div class="stat-card">
-          <div class="label">Weekly Score</div>
-          <div class="value" style="color:${wkScore >= 70 ? '#22c55e' : wkScore >= 40 ? '#f59e0b' : '#ef4444'}">${wkScore}%</div>
-          <div class="sub">this week</div>
-        </div>
-        <div class="stat-card">
-          <div class="label">Days Logged</div>
-          <div class="value">${days.length}</div>
-          <div class="sub">total entries</div>
-        </div>
-        <div class="stat-card">
-          <div class="label">Avg Sleep</div>
-          <div class="value">${fmtHours(avgSleepHrs)}</div>
-          <div class="sub">${avgSleepHrs >= 7 ? '✓ on target' : '↓ below 7h'}</div>
-        </div>
-        <div class="stat-card">
-          <div class="label">Best Streak</div>
-          <div class="value">${bestStreak > 0 ? bestStreak + '🔥' : '—'}</div>
-          <div class="sub">days in a row</div>
-        </div>
-      </div>
-
-      <div class="section">
-        <div class="section-title">Streaks</div>
-        <div class="streaks">
-          ${[
-            { icon: '😴', name: 'Sleep ≥6h',  val: streaks.sleep,    best: 'nights' },
-            { icon: '💪', name: 'Exercise',    val: streaks.exercise, best: 'days' },
-            { icon: '🥗', name: 'Eating well', val: streaks.eating,   best: 'days' },
-            { icon: '💧', name: 'Water',       val: streaks.water,    best: 'days' },
-          ].map(s => `
-            <div class="streak-card">
-              <div class="streak-icon">${s.icon}</div>
-              <div class="streak-info">
-                <div class="streak-name">${s.name}</div>
-                <div class="streak-val">${s.val > 0 ? s.val + ' <span class="streak-fire">🔥</span>' : '<span style="color:#3f3f46">0</span>'}</div>
-                <div class="streak-sub">${s.val > 0 ? s.val + ' ' + s.best + ' in a row' : 'Start the streak'}</div>
-              </div>
-            </div>
-          `).join('')}
-        </div>
-      </div>
-
-      <div class="section">
-        <div class="section-title">Last 30 Days</div>
-        <div style="background:#111113;border:1px solid #1d1d20;border-radius:10px;padding:16px;overflow-x:auto">
-          <div class="heatmap-cells" style="display:flex;flex-wrap:wrap;gap:3px">
-            ${heatmapDays.map(({ key, log }) => {
-              const q = log?.sleep ? sleepQuality(log.sleep.duration, log.sleep.skipped) : log ? 'logged' : null;
-              const cls = !log ? '' : q === 'great' ? 'great' : q === 'good' ? 'good' : q === 'short' ? 'short' : q === 'none' ? 'none' : 'good';
-              const label = new Date(key + 'T12:00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
-              return `<div class="heatmap-cell ${cls}" title="${label}${log ? (log.sleep?.duration ? ' · ' + fmtHours(log.sleep.duration) : '') : ' · not logged'}"></div>`;
-            }).join('')}
-          </div>
-          <div class="heatmap-legend" style="margin-top:10px">
-            <span>Sleep:</span>
-            <div class="legend-cell" style="background:#16a34a"></div><span>≥7h</span>
-            <div class="legend-cell" style="background:#22c55e;opacity:0.7"></div><span>6–7h</span>
-            <div class="legend-cell" style="background:#f59e0b;opacity:0.8"></div><span>&lt;6h</span>
-            <div class="legend-cell" style="background:#ef4444;opacity:0.7"></div><span>none</span>
-            <div class="legend-cell" style="background:#1d1d20"></div><span>not logged</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="section">
-        <div class="section-title">Sleep — Last 7 Days</div>
-        <div style="background:#111113;border:1px solid #1d1d20;border-radius:10px;padding:16px">
-          ${last7.length ? `
-            <div class="sleep-bars">
-              ${last7.map(d => {
-                const dur = d.sleep?.skipped ? 0 : (d.sleep?.duration || 0);
-                const pct = Math.min((dur / 10) * 100, 100);
-                const col = dur >= 7 ? '#22c55e' : dur >= 6 ? '#6366f1' : dur > 0 ? '#f59e0b' : '#ef4444';
-                return `
-                  <div class="sleep-bar-row">
-                    <div class="sleep-bar-label">${new Date(d.date + 'T12:00:00').toLocaleDateString('en-IN',{weekday:'short'})}</div>
-                    <div class="sleep-bar-track"><div class="sleep-bar-fill" style="width:${pct}%;background:${col}"></div></div>
-                    <div class="sleep-bar-val">${d.sleep?.skipped ? 'none' : fmtHours(dur)}</div>
-                  </div>`;
-              }).join('')}
-            </div>
-          ` : `<div style="color:#3f3f46;font-size:12px">No sleep data yet</div>`}
-        </div>
-      </div>
-
-      <div class="section">
-        <div class="section-title">Insights</div>
-        <div class="insights">
-          ${insights.map(i => `
-            <div class="insight">
-              <div class="insight-icon">${i.icon}</div>
-              <div class="insight-text">${i.text}</div>
-            </div>
-          `).join('')}
-        </div>
-      </div>
-
-      ${days.length ? `
-      <div class="section">
-        <div class="section-title">Recent Log</div>
-        <div style="background:#111113;border:1px solid #1d1d20;border-radius:10px;padding:16px;overflow-x:auto">
-          <table class="log-table">
-            <thead>
-              <tr>
-                <th>Date</th><th>Sleep</th><th>Energy</th><th>Exercise</th><th>Eating</th><th>Water</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${[...days].reverse().slice(0,7).map(d => `
-                <tr>
-                  <td class="highlight">${dayLabel(d.date)}</td>
-                  <td>${d.sleep?.skipped ? '<span style="color:#ef4444">none</span>' : fmtHours(d.sleep?.duration)}</td>
-                  <td>${d.energy ? '⚡'.repeat(d.energy) : '—'}</td>
-                  <td>${d.exercise?.done ? (d.exercise.type || '✓') : d.exercise ? '—' : '—'}</td>
-                  <td>${d.eating ? `<span class="pill ${d.eating.includes('Good') ? 'pill-good' : d.eating.includes('Okay') ? 'pill-okay' : 'pill-bad'}">${d.eating.replace(/[^\w\s]/g,'').trim()}</span>` : '—'}</td>
-                  <td>${d.water ? (d.water.includes('Good') ? '💧' : '🌵') : '—'}</td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>
-        </div>
-      </div>` : `
-        <div class="empty-state">
-          <div class="big">⚡</div>
-          <div>No data yet.</div>
-          <div style="margin-top:6px;color:#52525b">Log your first day with VITALS on iPhone.</div>
-          <div style="margin-top:4px;color:#52525b">Come back in a week — insights appear automatically.</div>
-        </div>
-      `}
-    `;
-
-    document.getElementById('last-synced').textContent =
-      'Synced ' + new Date().toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit' });
+    if (!h && h !== 0) return '—';
+    const hrs = Math.floor(h), mins = Math.round((h - hrs) * 60);
+    return mins ? `${hrs}h ${mins}m` : `${hrs}h`;
   }
 
   async function load() {
     try {
-      const files = await fetchLogs();
-      const days = mergeDays(files);
-      render(days);
+      // Read pre-computed insights.json generated by GitHub Actions + Gemini
+      const res = await fetch('https://api.github.com/repos/mavinash-dev/life-log/contents/insights.json', { headers: GH });
+
+      if (!res.ok) {
+        if (res.status === 404) throw new Error('no_insights');
+        throw new Error(`GitHub API error ${res.status}`);
+      }
+
+      const file = await res.json();
+      const data = JSON.parse(decode(file.content));
+
+      if (data.empty) throw new Error('no_insights');
+
+      const wkColor = data.weekly_score >= 70 ? '#22c55e' : data.weekly_score >= 40 ? '#f59e0b' : '#ef4444';
+      const bestStreak = Math.max(...Object.values(data.streaks || {}));
+
+      document.getElementById('app').innerHTML = `
+        <div class="stats-strip">
+          <div class="stat-card">
+            <div class="label">Weekly Score</div>
+            <div class="value" style="color:${wkColor}">${data.weekly_score ?? '—'}%</div>
+            <div class="sub">this week</div>
+          </div>
+          <div class="stat-card">
+            <div class="label">Days Logged</div>
+            <div class="value">${data.days_analyzed ?? '—'}</div>
+            <div class="sub">total entries</div>
+          </div>
+          <div class="stat-card">
+            <div class="label">Avg Sleep</div>
+            <div class="value">${fmtHours(data.avg_sleep_hours)}</div>
+            <div class="sub">${data.avg_sleep_hours >= 7 ? '✓ on target' : '↓ below 7h'}</div>
+          </div>
+          <div class="stat-card">
+            <div class="label">Best Streak</div>
+            <div class="value">${bestStreak > 0 ? bestStreak + '🔥' : '—'}</div>
+            <div class="sub">days in a row</div>
+          </div>
+        </div>
+
+        ${data.summary ? `
+        <div class="section">
+          <div style="background:#111113;border:1px solid #1d1d20;border-radius:10px;padding:14px 16px;font-size:13px;color:#a1a1aa;line-height:1.5;border-left:3px solid #6366f1">
+            ⚡ ${data.summary}
+          </div>
+        </div>` : ''}
+
+        <div class="section">
+          <div class="section-title">Streaks</div>
+          <div class="streaks">
+            ${[
+              { icon: '😴', name: 'Sleep ≥6h',  key: 'sleep',    unit: 'nights' },
+              { icon: '💪', name: 'Exercise',    key: 'exercise', unit: 'days'   },
+              { icon: '🥗', name: 'Eating well', key: 'eating',   unit: 'days'   },
+              { icon: '💧', name: 'Water',       key: 'water',    unit: 'days'   },
+            ].map(s => {
+              const val = data.streaks?.[s.key] ?? 0;
+              return `
+                <div class="streak-card">
+                  <div class="streak-icon">${s.icon}</div>
+                  <div class="streak-info">
+                    <div class="streak-name">${s.name}</div>
+                    <div class="streak-val">${val > 0 ? val + ' <span class="streak-fire">🔥</span>' : '<span style="color:#3f3f46">0</span>'}</div>
+                    <div class="streak-sub">${val > 0 ? val + ' ' + s.unit + ' in a row' : 'Start the streak'}</div>
+                  </div>
+                </div>`;
+            }).join('')}
+          </div>
+        </div>
+
+        ${data.heatmap?.length ? `
+        <div class="section">
+          <div class="section-title">Last 30 Days</div>
+          <div style="background:#111113;border:1px solid #1d1d20;border-radius:10px;padding:16px">
+            <div style="display:flex;flex-wrap:wrap;gap:3px">
+              ${data.heatmap.map(d => {
+                const cls = d.quality === 'great' ? 'great' : d.quality === 'good' ? 'good' : d.quality === 'short' ? 'short' : d.quality === 'none' ? 'none' : '';
+                const label = new Date(d.date + 'T12:00:00').toLocaleDateString('en-IN',{day:'numeric',month:'short'});
+                return `<div class="heatmap-cell ${cls}" title="${label}"></div>`;
+              }).join('')}
+            </div>
+            <div class="heatmap-legend" style="margin-top:10px">
+              <span>Sleep:</span>
+              <div class="legend-cell" style="background:#16a34a"></div><span>≥7h</span>
+              <div class="legend-cell" style="background:#22c55e;opacity:0.7"></div><span>6–7h</span>
+              <div class="legend-cell" style="background:#f59e0b;opacity:0.8"></div><span>&lt;6h</span>
+              <div class="legend-cell" style="background:#ef4444;opacity:0.7"></div><span>none</span>
+              <div class="legend-cell" style="background:#1d1d20"></div><span>not logged</span>
+            </div>
+          </div>
+        </div>` : ''}
+
+        ${data.sleep_bars?.length ? `
+        <div class="section">
+          <div class="section-title">Sleep — Last 7 Days</div>
+          <div style="background:#111113;border:1px solid #1d1d20;border-radius:10px;padding:16px">
+            <div class="sleep-bars">
+              ${data.sleep_bars.map(d => {
+                const pct = Math.min(((d.hours || 0) / 10) * 100, 100);
+                const col = d.quality === 'great' ? '#22c55e' : d.quality === 'good' ? '#6366f1' : d.quality === 'short' ? '#f59e0b' : '#ef4444';
+                return `
+                  <div class="sleep-bar-row">
+                    <div class="sleep-bar-label">${d.label}</div>
+                    <div class="sleep-bar-track"><div class="sleep-bar-fill" style="width:${pct}%;background:${col}"></div></div>
+                    <div class="sleep-bar-val">${d.quality === 'none' ? 'none' : fmtHours(d.hours)}</div>
+                  </div>`;
+              }).join('')}
+            </div>
+            <div style="margin-top:10px;font-size:11px;color:#52525b">
+              Avg bed time: ${data.avg_bedtime ?? '—'} · Wake: ${data.avg_waketime ?? '—'}
+            </div>
+          </div>
+        </div>` : ''}
+
+        ${data.insights?.length ? `
+        <div class="section">
+          <div class="section-title">Insights — by Gemini</div>
+          <div class="insights">
+            ${data.insights.map(i => `
+              <div class="insight">
+                <div class="insight-icon">${i.icon}</div>
+                <div class="insight-text">${i.text}</div>
+              </div>`).join('')}
+          </div>
+        </div>` : ''}
+
+        <div style="max-width:1120px;margin:0 auto;text-align:right;font-size:10px;color:#27272a">
+          Analysed ${new Date(data.generated_at).toLocaleDateString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})} · Powered by Gemini
+        </div>
+      `;
+
+      document.getElementById('last-synced').textContent =
+        'Synced ' + new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+
     } catch (err) {
-      document.getElementById('app').innerHTML =
-        `<div class="empty-state"><div class="big">⚠️</div><div>${err.message}</div></div>`;
+      if (err.message === 'no_insights') {
+        document.getElementById('app').innerHTML = `
+          <div class="empty-state">
+            <div class="big">⚡</div>
+            <div>No insights yet.</div>
+            <div style="margin-top:6px;color:#52525b">Log your first day with <strong style="color:#a1a1aa">VITALS</strong> on iPhone.</div>
+            <div style="margin-top:4px;color:#52525b">Gemini analyses your data automatically after each log.</div>
+          </div>`;
+      } else {
+        document.getElementById('app').innerHTML = `
+          <div class="empty-state">
+            <div class="big">⚠️</div>
+            <div style="color:#a1a1aa">${err.message}</div>
+            <button onclick="load()" style="margin-top:14px;padding:7px 18px;background:#27272a;border:1px solid #3f3f46;color:#e4e4e7;border-radius:8px;font-size:12px;cursor:pointer">Retry</button>
+          </div>`;
+      }
+      document.getElementById('last-synced').textContent = 'Sync failed';
     }
   }
 
