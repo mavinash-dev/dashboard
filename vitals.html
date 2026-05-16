@@ -53,12 +53,10 @@
     .meal-name { font-size: 13px; color: var(--sub); width: 80px; flex-shrink: 0; }
     .meal-opts { display: flex; gap: 5px; flex: 1; }
     .meal-opt { flex: 1; padding: 6px 4px; background: var(--card); border: 1.5px solid var(--border); border-radius: 8px; font-size: 11px; color: var(--dim); cursor: pointer; text-align: center; transition: all 0.1s; -webkit-tap-highlight-color: transparent; }
-    .meal-opt.selected { border-color: var(--accent); color: var(--accent); background: rgba(99,102,241,0.1); }
 
     /* Energy */
     .energy-row { display: flex; gap: 6px; flex-wrap: wrap; }
-    .e-btn { flex: 1; min-width: 36px; padding: 11px 4px; background: var(--card); border: 1.5px solid var(--border); border-radius: 8px; color: var(--sub); font-size: 13px; font-weight: 600; cursor: pointer; text-align: center; transition: all 0.1s; -webkit-tap-highlight-color: transparent; }
-    .e-btn.selected { background: var(--amber); border-color: var(--amber); color: #000; }
+    .e-btn { flex: 1; min-width: 36px; padding: 11px 4px; background: var(--card); border: 1.5px solid var(--border); border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; text-align: center; transition: all 0.1s; -webkit-tap-highlight-color: transparent; }
 
     /* Stepper */
     .activity-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
@@ -145,13 +143,25 @@
     { key:'walk',      label:'🚶 Walk / Run'       },
   ];
 
-  const DRINKS = [
-    { key:'smoothie',    label:'🥛 Smoothie'     },
-    { key:'cold_coffee', label:'☕ Cold Coffee'   },
-    { key:'milkshake',   label:'🧋 Milkshake'    },
-    { key:'tea',         label:'🫖 Tea'           },
-    { key:'juice',       label:'🍊 Juice'         },
-  ];
+  // Color helpers
+  const ENERGY_COLORS = ['','#ef4444','#f87171','#f97316','#fb923c','#f59e0b','#facc15','#a3e635','#4ade80','#22c55e','#16a34a'];
+  const DAMAGE_COLORS = { '0':'#22c55e','1':'#f59e0b','2':'#f97316','3':'#ef4444','4+':'#dc2626' };
+  const MEAL_COLORS   = { skip:'#52525b', light:'#22c55e', medium:'#f59e0b', heavy:'#ef4444' };
+
+  function eStyle(n, sel) {
+    const c = ENERGY_COLORS[n];
+    return sel
+      ? `background:${c}28;border-color:${c};color:${c}`
+      : `background:${c}0d;border-color:${c}30;color:${c}99`;
+  }
+  function mStyle(opt, sel) {
+    const c = MEAL_COLORS[opt] || '#52525b';
+    return sel ? `background:${c}22;border-color:${c};color:${c}` : '';
+  }
+  function dStyle(n, sel) {
+    const c = DAMAGE_COLORS[String(n)] || '#52525b';
+    return sel ? `background:${c}22;border-color:${c};color:${c}` : '';
+  }
 
   // ── Utilities ──
   function today() {
@@ -189,12 +199,12 @@
   // ── State ──
   let state = {
     tab: 'body',
-    energy: null, weight: null,
-    food: { drinks: [], breakfast: null, lunch: null, dinner: null, snacks: false, fruits: false, custom: [] },
+    energy: null, weight: null, damage: null,
+    food: { breakfast: null, lunch: null, dinner: null, items: [] },
     eating_quality: null,
     sessions: [{ from:'', to:'' }],
     activities: Object.fromEntries(ACTIVITIES.map(a=>[a.key,0])),
-    damage: null, notes: ''
+    notes: ''
   };
 
   // ── GitHub API ──
@@ -260,12 +270,22 @@
       <div class="section">
         <div class="section-label">Energy right now</div>
         <div class="energy-row">
-          ${[1,2,3,4,5,6,7,8,9,10].map(n=>`<button class="e-btn ${state.energy===n?'selected':''}" id="e${n}" onclick="selEnergy(${n})">${n}</button>`).join('')}
+          ${[1,2,3,4,5,6,7,8,9,10].map(n=>`
+            <button class="e-btn" id="e${n}" onclick="selEnergy(${n})"
+              style="${eStyle(n, state.energy===n)}">${n}</button>`).join('')}
         </div>
       </div>
       <div class="section">
         <div class="section-label">Weight (optional)</div>
         <input class="num-input" type="number" id="weight" placeholder="e.g. 53.1" step="0.1" inputmode="decimal" value="${state.weight||''}">
+      </div>
+      <div class="section">
+        <div class="section-label">Damage</div>
+        <div class="chips">
+          ${[0,1,2,3,'4+'].map(n=>`
+            <span class="chip" id="dmg-${n}" onclick="selDamage('${n}')"
+              style="${dStyle(n, String(state.damage)===String(n))}; padding:9px 16px">${n}</span>`).join('')}
+        </div>
       </div>
       <div class="err" id="body-err"></div>
       <button class="save-btn" onclick="saveBody()">Save Body ⚡</button>`;
@@ -275,7 +295,7 @@
     state.energy = n;
     [1,2,3,4,5,6,7,8,9,10].forEach(i => {
       const el = document.getElementById(`e${i}`);
-      if (el) el.className = `e-btn${i===n?' selected':''}`;
+      if (el) el.setAttribute('style', eStyle(i, i===n));
     });
   }
 
@@ -287,10 +307,11 @@
     state.weight = w;
     btn.textContent = 'Saving…'; btn.disabled = true;
     try {
-      await saveToday({ energy: state.energy, weight: w });
+      await saveToday({ energy: state.energy, weight: w, damage: state.damage });
       showSuccess('Body saved', [
         { label:'⚡', val:`${state.energy}/10` },
-        ...(w?[{label:'⚖️', val:`${w}kg`}]:[])
+        ...(w?[{label:'⚖️', val:`${w}kg`}]:[]),
+        ...(state.damage!=null?[{label:'📊', val:`damage: ${state.damage}`}]:[])
       ]);
     } catch(e) { btn.textContent='Save Body ⚡'; btn.disabled=false; err.textContent=e.message; }
   }
@@ -300,13 +321,6 @@
     const f = state.food;
     document.getElementById('tab-body').innerHTML = `
       <div class="section">
-        <div class="section-label">Drinks</div>
-        <div class="chips">
-          ${DRINKS.map(d=>`<span class="chip ${f.drinks.includes(d.key)?'on-accent':''}" onclick="toggleDrink('${d.key}')">${d.label}</span>`).join('')}
-        </div>
-      </div>
-
-      <div class="section">
         <div class="section-label">Meals</div>
         <div style="background:var(--card);border:1.5px solid var(--border);border-radius:10px;padding:4px 12px">
           ${['breakfast','lunch','dinner'].map(meal=>`
@@ -314,7 +328,8 @@
               <span class="meal-name">${meal[0].toUpperCase()+meal.slice(1)}</span>
               <div class="meal-opts">
                 ${['skip','light','medium','heavy'].map(opt=>`
-                  <button class="meal-opt ${f[meal]===opt?'selected':''}" onclick="selMeal('${meal}','${opt}')">
+                  <button class="meal-opt" onclick="selMeal('${meal}','${opt}')"
+                    style="${mStyle(opt, f[meal]===opt)}">
                     ${opt==='skip'?'—':opt[0].toUpperCase()+opt.slice(1)}
                   </button>`).join('')}
               </div>
@@ -323,18 +338,15 @@
       </div>
 
       <div class="section">
-        <div class="section-label">Snacks & more</div>
-        <div class="chips">
-          <span class="chip ${f.fruits?'on-green':''}"  onclick="toggleFood('fruits')">🍎 Fruits</span>
-          <span class="chip ${f.snacks?'on-amber':''}" onclick="toggleFood('snacks')">🍿 Snacks</span>
-        </div>
+        <div class="section-label">What did you have?</div>
         <div class="custom-row">
-          <input class="custom-input" id="custom-food-input" placeholder="Add food… e.g. Biryani">
-          <button class="add-btn" onclick="addCustomFood()">Add</button>
+          <input class="custom-input" id="food-input" placeholder="e.g. Biryani, cold coffee, fruits…"
+            onkeydown="if(event.key==='Enter'){addFoodItem();event.preventDefault()}">
+          <button class="add-btn" onclick="addFoodItem()">Add</button>
         </div>
-        ${f.custom.length ? `
-        <div class="custom-tags">
-          ${f.custom.map((c,i)=>`<span class="custom-tag" onclick="removeCustomFood(${i})">${c} ×</span>`).join('')}
+        ${f.items.length ? `
+        <div class="custom-tags" style="margin-top:10px">
+          ${f.items.map((c,i)=>`<span class="custom-tag" onclick="removeFoodItem(${i})">${c} ×</span>`).join('')}
         </div>` : ''}
       </div>
 
@@ -351,19 +363,14 @@
       <button class="save-btn" onclick="saveFood()">Save Food 🍽</button>`;
   }
 
-  function toggleDrink(key) {
-    const idx = state.food.drinks.indexOf(key);
-    if (idx>-1) state.food.drinks.splice(idx,1); else state.food.drinks.push(key);
-    renderFood();
-  }
   function selMeal(meal, opt) { state.food[meal] = opt; renderFood(); }
-  function toggleFood(key) { state.food[key] = !state.food[key]; renderFood(); }
   function selEating(val) { state.eating_quality = val; renderFood(); }
-  function addCustomFood() {
-    const v = document.getElementById('custom-food-input')?.value.trim();
-    if (v) { state.food.custom.push(v); renderFood(); }
+  function addFoodItem() {
+    const el = document.getElementById('food-input');
+    const v = el?.value.trim();
+    if (v) { state.food.items.push(v); el.value=''; renderFood(); }
   }
-  function removeCustomFood(i) { state.food.custom.splice(i,1); renderFood(); }
+  function removeFoodItem(i) { state.food.items.splice(i,1); renderFood(); }
 
   async function saveFood() {
     const btn = document.querySelector('.save-btn');
@@ -372,7 +379,7 @@
     try {
       await saveToday({ food: state.food, eating_quality: state.eating_quality });
       const chips = [];
-      if (state.food.drinks.length) chips.push({label:'🥤', val:state.food.drinks.length+' drinks'});
+      if (state.food.items.length) chips.push({label:'🍽', val:state.food.items.slice(0,2).join(', ')});
       if (state.food.lunch) chips.push({label:'🍛', val:'Lunch: '+state.food.lunch});
       if (state.eating_quality) chips.push({label:'😊', val:state.eating_quality});
       showSuccess('Food saved', chips);
@@ -395,17 +402,23 @@
             <div class="time-row">
               <div class="time-field" style="flex:1">
                 <label>Fell asleep</label>
-                <input type="time" class="time-input" value="${s.from}" oninput="updSession(${i},'from',this.value)">
+                <input type="time" class="time-input" value="${s.from}"
+                  onchange="updSession(${i},'from',this.value)">
               </div>
               <div class="time-field" style="flex:1">
                 <label>Woke up</label>
-                <input type="time" class="time-input" value="${s.to}" oninput="updSession(${i},'to',this.value)">
+                <input type="time" class="time-input" value="${s.to}"
+                  onchange="updSession(${i},'to',this.value)">
               </div>
             </div>
-            ${s.from&&s.to?`<div class="dur-label">Duration: <span>${fmtDur(calcDur(s.from,s.to))}</span></div>`:''}
+            <div class="dur-label" id="dur-${i}" style="${s.from&&s.to?'':'display:none'}">
+              Duration: <span>${fmtDur(calcDur(s.from,s.to))}</span>
+            </div>
           </div>`).join('')}
         <button class="add-session-btn" onclick="addSession()">+ Add another session</button>
-        ${total>0?`<div class="total-sleep">Total sleep today: <span>${fmtDur(total)}</span></div>`:''}
+        <div class="total-sleep" id="sleep-total" style="${total>0?'':'display:none'}">
+          Total sleep today: <span>${fmtDur(total)}</span>
+        </div>
       </div>
       <div class="err" id="sleep-err"></div>
       <button class="save-btn" onclick="saveSleep()">Save Sleep 💤</button>`;
@@ -413,7 +426,17 @@
 
   function addSession() { state.sessions.push({from:'',to:''}); renderSleep(); }
   function removeSession(i) { state.sessions.splice(i,1); renderSleep(); }
-  function updSession(i,f,v) { state.sessions[i][f]=v; renderSleep(); }
+  function updSession(i, field, val) {
+    state.sessions[i][field] = val;
+    // Update only duration + total — no full re-render (keeps time picker working)
+    const s = state.sessions[i];
+    const dur = calcDur(s.from, s.to);
+    const durEl = document.getElementById(`dur-${i}`);
+    if (durEl) { durEl.style.display = dur ? '' : 'none'; durEl.innerHTML = `Duration: <span>${fmtDur(dur)}</span>`; }
+    const total = state.sessions.reduce((a,x)=>a+(calcDur(x.from,x.to)||0), 0);
+    const totEl = document.getElementById('sleep-total');
+    if (totEl) { totEl.style.display = total>0 ? '' : 'none'; totEl.innerHTML = `Total sleep today: <span>${fmtDur(total)}</span>`; }
+  }
 
   async function saveSleep() {
     const btn = document.querySelector('.save-btn');
@@ -451,13 +474,6 @@
       </div>
 
       <div class="section">
-        <div class="section-label">Damage</div>
-        <div class="chips">
-          ${[0,1,2,3,'4+'].map(n=>`<span class="chip ${String(state.damage)===String(n)?'on-red':''}" onclick="selDamage('${n}')">${n}</span>`).join('')}
-        </div>
-      </div>
-
-      <div class="section">
         <div class="section-label">Notes (optional)</div>
         <textarea class="txt-input" id="notes" placeholder="Anything notable…">${state.notes||''}</textarea>
       </div>
@@ -468,7 +484,13 @@
 
   function incAct(k) { state.activities[k]=Math.min((state.activities[k]||0)+0.5,16); const el=document.getElementById(`act-${k}`); if(el) el.textContent=state.activities[k]>0?fmtDur(state.activities[k]):'—'; }
   function decAct(k) { state.activities[k]=Math.max((state.activities[k]||0)-0.5,0);  const el=document.getElementById(`act-${k}`); if(el) el.textContent=state.activities[k]>0?fmtDur(state.activities[k]):'—'; }
-  function selDamage(n) { state.damage=n; renderDay(); }
+  function selDamage(n) {
+    state.damage = n;
+    [0,1,2,3,'4+'].forEach(v => {
+      const el = document.getElementById(`dmg-${v}`);
+      if (el) el.setAttribute('style', dStyle(v, String(v)===String(n)) + ';padding:9px 16px');
+    });
+  }
 
   async function saveDay() {
     const btn = document.querySelector('.save-btn');
