@@ -144,9 +144,12 @@
   ];
 
   // Color helpers
-  const ENERGY_COLORS = ['','#ef4444','#f87171','#f97316','#fb923c','#f59e0b','#facc15','#a3e635','#4ade80','#22c55e','#16a34a'];
-  const DAMAGE_COLORS = { '0':'#22c55e','1':'#f59e0b','2':'#f97316','3':'#ef4444','4+':'#dc2626' };
-  const MEAL_COLORS   = { skip:'#52525b', light:'#22c55e', medium:'#f59e0b', heavy:'#ef4444' };
+  // Energy: red → green (feeling scale)
+  const ENERGY_COLORS = ['','#ef4444','#f97316','#f97316','#f59e0b','#f59e0b','#84cc16','#84cc16','#22c55e','#22c55e','#16a34a'];
+  // Damage: green (clean) → purple/magenta (distinct from energy reds)
+  const DAMAGE_COLORS = { '0':'#22c55e', '1':'#a78bfa', '2':'#7c3aed', '3':'#9333ea', '4+':'#c026d3' };
+  // Meals: neutral cyan/teal scale (quantity, not good/bad)
+  const MEAL_COLORS   = { skip:'#52525b', light:'#22d3ee', medium:'#0891b2', heavy:'#164e63' };
 
   function hexRgb(hex) {
     const h = hex.replace('#','');
