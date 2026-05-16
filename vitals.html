@@ -290,7 +290,7 @@
   }
 
   // ── State ──
-  let state = { period: isPM() ? 'pm' : 'am' };
+  let state = { period: isPM() ? 'pm' : 'am', sessions: [{ from: '', to: '' }] };
 
   // ── Screens ──
   function renderSetup() {
@@ -343,42 +343,21 @@
         </div>
 
         <div class="period-toggle">
-          <button class="period-btn ${period==='am'?'active':''}" onclick="switchPeriod('am')">☀️ Morning</button>
-          <button class="period-btn ${period==='pm'?'active':''}" onclick="switchPeriod('pm')">🌙 Evening</button>
+          <button class="period-btn ${period==='am'?'active':''}"    onclick="switchPeriod('am')">☀️ Morning</button>
+          <button class="period-btn ${period==='sleep'?'active':''}" onclick="switchPeriod('sleep')">💤 Sleep</button>
+          <button class="period-btn ${period==='pm'?'active':''}"    onclick="switchPeriod('pm')">🌙 Evening</button>
         </div>
 
         <div id="form-body"></div>
       </div>`;
 
-    period === 'am' ? renderMorning() : renderEvening();
+    if (period === 'am') renderMorning();
+    else if (period === 'sleep') renderSleep();
+    else renderEvening();
   }
 
   function renderMorning() {
     document.getElementById('form-body').innerHTML = `
-
-      <div class="section">
-        <div class="section-label">Did you sleep?</div>
-        <div class="option-row">
-          <button class="opt-btn selected-green" id="slept-yes" onclick="selectSleep('yes')">😴 Slept</button>
-          <button class="opt-btn" id="slept-no" onclick="selectSleep('no')">☠️ All-nighter</button>
-        </div>
-      </div>
-
-      <div id="sleep-fields" class="section">
-        <div class="section-label">Sleep window</div>
-        <div class="time-row">
-          <div class="time-field">
-            <label>Slept at</label>
-            <input type="time" class="time-input" id="sleep-from" value="02:00" oninput="updateDuration()">
-          </div>
-          <div class="time-field">
-            <label>Woke at</label>
-            <input type="time" class="time-input" id="sleep-to" value="09:00" oninput="updateDuration()">
-          </div>
-        </div>
-        <div class="duration-display" id="duration-display">Duration: <span>7h 0m</span></div>
-      </div>
-
       <div class="section">
         <div class="section-label">Energy level</div>
         <div class="energy-row">
@@ -394,9 +373,83 @@
       <div class="error-msg" id="form-err"></div>
       <button class="submit-btn" onclick="submitMorning()">Log Morning ☀️</button>
     `;
+  }
 
-    selectSleep('yes');
-    updateDuration();
+  function renderSleep() {
+    if (!state.sessions || state.sessions.length === 0) {
+      state.sessions = [{ from: '', to: '' }];
+    }
+    renderSessionList();
+  }
+
+  function renderSessionList() {
+    const sessions = state.sessions;
+    const total = sessions.reduce((sum, s) => {
+      const d = calcDuration(s.from, s.to);
+      return sum + (d || 0);
+    }, 0);
+
+    document.getElementById('form-body').innerHTML = `
+      <div class="section">
+        <div class="section-label">Sleep sessions today</div>
+        <div id="sessions-list">
+          ${sessions.map((s, i) => `
+            <div style="background:var(--card);border:1.5px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+                <span style="font-size:12px;color:var(--dim)">Session ${i + 1}</span>
+                ${sessions.length > 1 ? `<button onclick="removeSession(${i})" style="background:none;border:none;color:var(--red);font-size:18px;cursor:pointer;padding:0;line-height:1">×</button>` : ''}
+              </div>
+              <div class="time-row">
+                <div class="time-field">
+                  <label>Fell asleep</label>
+                  <input type="time" class="time-input" value="${s.from}"
+                    oninput="updateSession(${i},'from',this.value)">
+                </div>
+                <div class="time-field">
+                  <label>Woke up</label>
+                  <input type="time" class="time-input" value="${s.to}"
+                    oninput="updateSession(${i},'to',this.value)">
+                </div>
+              </div>
+              ${s.from && s.to ? `<div class="duration-display" style="margin-top:8px">Duration: <span>${fmtDuration(calcDuration(s.from, s.to))}</span></div>` : ''}
+            </div>
+          `).join('')}
+        </div>
+
+        <button onclick="addSession()"
+          style="width:100%;padding:11px;background:transparent;border:1.5px dashed var(--border2);border-radius:10px;color:var(--dim);font-size:13px;cursor:pointer;margin-bottom:16px">
+          + Add another session
+        </button>
+
+        ${total > 0 ? `
+        <div style="background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.2);border-radius:10px;padding:12px 16px;text-align:center">
+          <span style="font-size:12px;color:var(--dim)">Total sleep today: </span>
+          <span style="font-size:15px;font-weight:700;color:#fff">${fmtDuration(total)}</span>
+        </div>` : ''}
+      </div>
+
+      <div class="error-msg" id="form-err"></div>
+      <button class="submit-btn" onclick="submitSleep()">Log Sleep 💤</button>
+    `;
+  }
+
+  function addSession() {
+    state.sessions.push({ from: '', to: '' });
+    renderSessionList();
+  }
+
+  function removeSession(i) {
+    state.sessions.splice(i, 1);
+    renderSessionList();
+  }
+
+  function updateSession(i, field, val) {
+    state.sessions[i][field] = val;
+    // Re-render just the duration for this session without full re-render
+    const total = state.sessions.reduce((sum, s) => sum + (calcDuration(s.from, s.to) || 0), 0);
+    const totalEl = document.querySelector('[style*="Total sleep today"]');
+    // Lightweight update — just re-render the list
+    renderSessionList();
   }
 
   function renderEvening() {
@@ -448,7 +501,7 @@
       <div class="screen">
         <div class="success">
           <div class="success-icon">✅</div>
-          <div class="success-title">${period === 'am' ? 'Morning' : 'Evening'} logged!</div>
+          <div class="success-title">${period === 'am' ? 'Morning' : period === 'sleep' ? 'Sleep' : 'Evening'} logged!</div>
           <div class="success-meta">
             ${chips.map(c => `<div class="success-chip">${c.label} <span>${c.value}</span></div>`).join('')}
           </div>
@@ -518,39 +571,51 @@
   async function submitMorning() {
     const btn = document.querySelector('.submit-btn');
     const err = document.getElementById('form-err');
-
-    const slept = state.slept !== 'no';
-    const from  = document.getElementById('sleep-from')?.value;
-    const to    = document.getElementById('sleep-to')?.value;
-    const dur   = slept ? calcDuration(from, to) : 0;
     const energy = state.energy;
     const weight = parseFloat(document.getElementById('weight').value) || null;
 
-    if (slept && (!from || !to)) { err.textContent = 'Enter sleep times'; return; }
     if (!energy) { err.textContent = 'Select energy level'; return; }
 
-    const data = {
-      date: today(),
-      sleep: {
-        from: slept ? to12h(from) : null,
-        to:   slept ? to12h(to)   : null,
-        duration: dur,
-        skipped: !slept
-      },
-      energy,
-      weight
-    };
+    const data = { date: today(), energy, weight };
 
     btn.textContent = 'Logging…'; btn.disabled = true; err.textContent = '';
     try {
       await writeToDB('am', data);
       renderSuccess('am', [
-        { label: '😴', value: slept ? fmtDuration(dur) : 'all-nighter' },
         { label: '⚡', value: `${energy}/5` },
         ...(weight ? [{ label: '⚖️', value: `${weight}kg` }] : [])
       ]);
     } catch (e) {
       btn.textContent = 'Log Morning ☀️'; btn.disabled = false;
+      err.textContent = e.message;
+    }
+  }
+
+  async function submitSleep() {
+    const btn = document.querySelector('.submit-btn');
+    const err = document.getElementById('form-err');
+    const sessions = state.sessions.filter(s => s.from && s.to);
+
+    if (!sessions.length) { err.textContent = 'Add at least one sleep session'; return; }
+
+    const built = sessions.map(s => ({
+      from:     to12h(s.from),
+      to:       to12h(s.to),
+      duration: calcDuration(s.from, s.to)
+    }));
+    const total = Math.round(built.reduce((sum, s) => sum + s.duration, 0) * 100) / 100;
+    const data  = { date: today(), sessions: built, total };
+
+    btn.textContent = 'Logging…'; btn.disabled = true; err.textContent = '';
+    try {
+      await writeToDB('sleep', data);
+      renderSuccess('sleep', [
+        { label: '💤', value: `${built.length} session${built.length > 1 ? 's' : ''}` },
+        { label: '⏱', value: fmtDuration(total) }
+      ]);
+      state.sessions = [{ from: '', to: '' }]; // reset
+    } catch (e) {
+      btn.textContent = 'Log Sleep 💤'; btn.disabled = false;
       err.textContent = e.message;
     }
   }
