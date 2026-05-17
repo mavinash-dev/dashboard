@@ -35,6 +35,22 @@
     .analyse-btn:hover:not(:disabled) { border-color: #6366f1; color: #6366f1; }
     .analyse-btn:disabled { opacity: 0.45; cursor: not-allowed; }
     .analyse-btn.loading { opacity: 0.6; cursor: not-allowed; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner {
+      display: inline-block; width: 13px; height: 13px; border-radius: 50%;
+      border: 2px solid rgba(99,102,241,0.25); border-top-color: #6366f1;
+      animation: spin 0.8s linear infinite; flex-shrink: 0;
+    }
+    .spinner.sm { width: 10px; height: 10px; border-width: 1.5px; }
+    .analyse-loader {
+      background: #111113; border: 1px solid #1d1d20; border-left: 3px solid #6366f1;
+      border-radius: 10px; padding: 20px 20px;
+      display: flex; align-items: center; gap: 14px;
+    }
+    .analyse-loader-text { flex: 1; }
+    .analyse-loader-text .title { font-size: 13px; font-weight: 600; color: #fff; margin-bottom: 4px; }
+    .analyse-loader-text .sub { font-size: 12px; color: #52525b; }
+    .analyse-loader-timer { font-size: 11px; color: #3f3f46; font-variant-numeric: tabular-nums; }
     .quota-badge {
       font-size: 10px; padding: 2px 7px; border-radius: 4px;
       background: #18181b; border: 1px solid #27272a; color: #52525b;
@@ -757,7 +773,65 @@
     }
   }
 
-  // ── Analyse Now ────────────────────────────────────────────────────────────
+  // ── Analyse Now + polling ──────────────────────────────────────────────────
+  let pollInterval = null;
+  let pollTimer = null;
+  let pollSeconds = 0;
+  const POLL_TIMEOUT = 180; // give up after 3 minutes
+
+  function stopPolling() {
+    if (pollInterval) { clearInterval(pollInterval); pollInterval = null; }
+    if (pollTimer)    { clearInterval(pollTimer);    pollTimer    = null; }
+    pollSeconds = 0;
+  }
+
+  function showInsightsLoader() {
+    pollSeconds = 0;
+    const el = document.getElementById('insights-section');
+    el.innerHTML = `
+      <div class="section-title">AI Insights — by Gemini</div>
+      <div class="analyse-loader">
+        <div class="spinner"></div>
+        <div class="analyse-loader-text">
+          <div class="title">Gemini is analysing your data…</div>
+          <div class="sub">Usually takes 30–60 seconds. Page will update automatically.</div>
+        </div>
+        <div class="analyse-loader-timer" id="poll-timer">0s</div>
+      </div>`;
+    pollTimer = setInterval(() => {
+      pollSeconds++;
+      const el = document.getElementById('poll-timer');
+      if (el) el.textContent = `${pollSeconds}s`;
+    }, 1000);
+  }
+
+  function startPolling(prevTimestamp) {
+    stopPolling();
+    showInsightsLoader();
+    pollInterval = setInterval(async () => {
+      if (pollSeconds >= POLL_TIMEOUT) {
+        stopPolling();
+        document.getElementById('insights-section').innerHTML = `
+          <div class="section-title">AI Insights — by Gemini</div>
+          <div style="background:#111113;border:1px solid #1d1d20;border-radius:10px;padding:16px;font-size:12px;color:#ef4444">
+            Analysis is taking longer than expected. Try refreshing in a minute.
+          </div>`;
+        return;
+      }
+      try {
+        const data = await fetchInsights();
+        if (data && data.generated_at && data.generated_at !== prevTimestamp) {
+          stopPolling();
+          const btn = document.getElementById('analyse-btn');
+          btn.classList.remove('loading');
+          btn.disabled = false;
+          btn.textContent = '✦ Analyse Now';
+          renderInsights(data);
+        }
+      } catch (_) {}
+    }, 10000); // poll every 10s
+  }
+
   async function triggerAnalysis() {
     const pat = localStorage.getItem('vitals_pat');
     const btn = document.getElementById('analyse-btn');
@@ -777,27 +851,34 @@
       return;
     }
 
-    btn.classList.add('loading'); btn.textContent = '⟳ Running…';
-    toast.className = 'analyse-toast show running';
-    toast.textContent = '⟳ Workflow triggered — Gemini is analysing your data. Refresh in ~60 seconds.';
+    btn.disabled = true;
+    btn.classList.add('loading');
+    btn.innerHTML = '<span class="spinner sm"></span> Running…';
+    toast.className = 'analyse-toast';
 
     try {
+      // capture current timestamp before triggering
+      const currentData = await fetchInsights().catch(() => null);
+      const prevTs = currentData?.generated_at || null;
+
       const res = await fetch(
         'https://api.github.com/repos/mavinash-dev/life-log/actions/workflows/analyze.yml/dispatches',
         { method:'POST', headers:{ Authorization:`token ${pat}`, Accept:'application/vnd.github.v3+json', 'Content-Type':'application/json' },
           body: JSON.stringify({ ref:'main' }) }
       );
+
       if (res.status === 204) {
         bumpQuota();
         updateQuotaBadge();
-        const left = MANUAL_DAILY_CAP - getQuota();
-        toast.className = 'analyse-toast show done';
-        toast.textContent = `✓ Analysis started. Insights update in ~60s — refresh to see them. (${left} triggers left today)`;
-        btn.textContent = '✓ Started';
-        setTimeout(() => { btn.classList.remove('loading'); btn.textContent = '✦ Analyse Now'; toast.className = 'analyse-toast'; }, 60000);
-      } else throw new Error(`GitHub returned ${res.status}`);
+        startPolling(prevTs);
+      } else {
+        throw new Error(`GitHub returned ${res.status}`);
+      }
     } catch (e) {
-      btn.classList.remove('loading'); btn.textContent = '✦ Analyse Now';
+      stopPolling();
+      btn.classList.remove('loading');
+      btn.disabled = false;
+      btn.textContent = '✦ Analyse Now';
       toast.className = 'analyse-toast show error';
       toast.textContent = `✗ ${e.message}`;
       setTimeout(() => toast.className = 'analyse-toast', 4000);
