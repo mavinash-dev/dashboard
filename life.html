@@ -212,6 +212,94 @@
 </div>
 <div class="analyse-toast" id="analyse-toast"></div>
 
+<div id="mission-banner" style="max-width:1120px;margin:0 auto 24px;background:linear-gradient(135deg,rgba(99,102,241,0.12),rgba(139,92,246,0.08));border:1px solid rgba(99,102,241,0.25);border-radius:12px;padding:18px 20px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap"></div>
+<script>
+(function(){
+  const start = new Date('2026-05-18'), deadline = new Date('2026-08-17');
+  const now = new Date();
+  const dayIn  = Math.max(0, Math.floor((now - start) / 86400000));
+  const daysLeft = Math.max(0, Math.ceil((deadline - now) / 86400000));
+  const total = Math.ceil((deadline - start) / 86400000);
+  const pct = Math.min(Math.round((dayIn / total) * 100), 100);
+  const QUOTES = [
+    'He\'s a man of focus, commitment, and sheer will.',
+    'I am Iron Man.',
+    'Whatever it takes.',
+    'The North remembers.',
+    'He\'s not the Boogeyman. He\'s the man you send to kill the Boogeyman.',
+    'I drink and I know things.',
+    'Part of the journey is the end.',
+    'You know nothing, Jon Snow.',
+    'I could do this all day.',
+    'A Lannister always pays his debts.',
+    'People keep asking if I\'m back. Yeah. I\'m thinking I\'m back.',
+    'Winter is coming.',
+    'Genius. Billionaire. Playboy. Philanthropist.',
+    'The man who passes the sentence should swing the sword.',
+    'He came back from the dead.',
+    'I am inevitable. — Wrong man said it.',
+    'Not all those who wander are lost.',
+    'The things I do for love.',
+    'I\'m not the hero type. Clearly. — Then he became one.',
+    'When you play the game of thrones, you win or you die.',
+    'He killed 3 men with a pencil. A pencil.',
+    'With great power comes great responsibility.',
+    'The North doesn\'t forget.',
+    'I am the storm.',
+    'You either die a hero or live long enough to see yourself become the villain.',
+    'Fear is the mind killer.',
+    'It\'s not who I am underneath, but what I do that defines me.',
+    'The cave you fear to enter holds the treasure you seek.',
+    'He is the shield that guards the realms of men.',
+    'Hard times create strong men.',
+    'The first rule of being a Stark — don\'t be stupid.',
+    'Pain is temporary. Quitting lasts forever.',
+    'He didn\'t choose to be King. He chose to be worthy.',
+    'Everybody wants to be a beast until it\'s time to do what beasts do.',
+    'You cannot kill me in a way that matters.',
+    'Iron sharpens iron.',
+    'He was stabbed by his own men. Came back the King.',
+    'The successful warrior is the average man with laser-like focus.',
+    'He retired. They came for his dog. He came for everything.',
+    'May the Force be with you.',
+    'John will come for you and you will do nothing. Because there is nothing you can do.',
+    'You shall not pass.',
+    'He knew the mission would kill him. Snapped anyway.',
+    'I am the master of my fate. I am the captain of my soul.',
+    'Avengers. Assemble.',
+    'The man who has nothing can still choose how he dies.',
+    'Blood, sweat and respect. First two you give. Last one you earn.',
+    'He walked into that room alone. Walked out the only one standing.',
+    'Suffer the pain of discipline or suffer the pain of regret.',
+    'Do or do not. There is no try.',
+    'He sat on the Iron Throne for one night. Chose to give it up.',
+    'Some men just want to watch the world burn. Don\'t be some men.',
+    'Winter came. He was ready.',
+    'You have no idea what I\'m capable of.',
+    'The wolf does not concern himself with the opinion of sheep.',
+    'One man can change the world.',
+    'The High Table said stop. He didn\'t stop.',
+    'Some people are just born with tragedy in their blood. And still they rise.',
+    'The quieter you become, the more you can hear.',
+    'And I… am… Iron Man.',
+  ];
+  const quote = QUOTES[dayIn % QUOTES.length];
+  document.getElementById('mission-banner').innerHTML = `
+    <div>
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.7px;color:#6366f1;font-weight:700;margin-bottom:4px">Mission: Hero Body 💪</div>
+      <div style="font-size:20px;font-weight:800;color:#fff;margin-bottom:2px">53 kg → 60 kg</div>
+      <div style="font-size:12px;color:#52525b">${quote}</div>
+    </div>
+    <div style="text-align:right;flex-shrink:0">
+      <div style="font-size:28px;font-weight:800;color:#fff;line-height:1">Day ${dayIn}</div>
+      <div style="font-size:11px;color:#52525b;margin-top:2px">${daysLeft} days left · ${pct}% through</div>
+      <div style="width:100px;height:4px;background:#1d1d20;border-radius:2px;margin-top:6px;overflow:hidden;margin-left:auto">
+        <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,#6366f1,#8b5cf6);border-radius:2px"></div>
+      </div>
+    </div>`;
+})();
+</script>
+
 <nav class="tabs">
   <a href="index.html" class="tab">Projects</a>
   <a href="life.html" class="tab active">Life</a>
