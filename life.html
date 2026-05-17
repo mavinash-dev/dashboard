@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Life — mavinash-dev</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -12,7 +13,6 @@
       min-height: 100vh; padding: 28px 20px 48px;
     }
 
-    /* Header */
     .header {
       max-width: 1120px; margin: 0 auto 8px;
       display: flex; justify-content: space-between; align-items: center;
@@ -35,20 +35,17 @@
     .analyse-btn:hover { border-color: #6366f1; color: #6366f1; }
     .analyse-btn.loading { opacity: 0.6; cursor: not-allowed; }
     .analyse-toast {
-      max-width: 1120px; margin: 0 auto 16px;
-      padding: 10px 14px; border-radius: 8px; font-size: 12px;
-      display: none;
+      max-width: 1120px; margin: 0 auto 12px;
+      padding: 10px 14px; border-radius: 8px; font-size: 12px; display: none;
     }
     .analyse-toast.show { display: block; }
     .analyse-toast.running { background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.2); color: #818cf8; }
     .analyse-toast.done    { background: rgba(34,197,94,0.1);  border: 1px solid rgba(34,197,94,0.2);  color: #22c55e; }
     .analyse-toast.error   { background: rgba(239,68,68,0.1);  border: 1px solid rgba(239,68,68,0.2);  color: #ef4444; }
 
-    /* Tab Nav */
     .tabs {
-      max-width: 1120px; margin: 0 auto 28px;
+      max-width: 1120px; margin: 0 auto 20px;
       display: flex; gap: 4px; border-bottom: 1px solid #1d1d20;
-      padding-bottom: 0;
     }
     .tab {
       padding: 8px 16px; font-size: 13px; font-weight: 500;
@@ -58,65 +55,80 @@
     .tab:hover { color: #a1a1aa; }
     .tab.active { color: #fff; border-bottom-color: #6366f1; }
 
-    /* Stats strip */
+    .range-bar {
+      max-width: 1120px; margin: 0 auto 20px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .range-pill {
+      padding: 5px 14px; background: #18181b; border: 1px solid #27272a;
+      border-radius: 6px; color: #52525b; font-size: 12px; font-weight: 600;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .range-pill:hover { color: #a1a1aa; border-color: #3f3f46; }
+    .range-pill.active { background: #6366f1; border-color: #6366f1; color: #fff; }
+
     .stats-strip {
       max-width: 1120px; margin: 0 auto 24px;
-      display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 160px), 1fr));
-      gap: 10px;
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 148px), 1fr)); gap: 10px;
     }
     .stat-card {
-      background: #111113; border: 1px solid #1d1d20; border-radius: 10px;
-      padding: 14px 16px;
+      background: #111113; border: 1px solid #1d1d20; border-radius: 10px; padding: 14px 16px;
     }
     .stat-card .label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.6px; color: #3f3f46; font-weight: 600; margin-bottom: 6px; }
     .stat-card .value { font-size: 22px; font-weight: 700; color: #fff; line-height: 1; }
     .stat-card .sub { font-size: 11px; color: #52525b; margin-top: 4px; }
 
-    /* Section */
     .section { max-width: 1120px; margin: 0 auto 28px; }
-    .section-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; color: #3f3f46; font-weight: 600; margin-bottom: 12px; }
+    .section-title {
+      font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px;
+      color: #3f3f46; font-weight: 600; margin-bottom: 12px;
+    }
 
-    /* Streak cards */
+    .chart-card {
+      background: #111113; border: 1px solid #1d1d20; border-radius: 10px; padding: 16px;
+    }
+    .chart-wrap { position: relative; height: 180px; }
+
+    .chart-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+    }
+    @media (max-width: 640px) { .chart-grid { grid-template-columns: 1fr; } }
+
+    .chart-label {
+      font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px;
+      color: #3f3f46; font-weight: 600; margin-bottom: 10px;
+    }
+
     .streaks { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr)); gap: 10px; }
     .streak-card {
       background: #111113; border: 1px solid #1d1d20; border-radius: 10px;
       padding: 14px 16px; display: flex; align-items: center; gap: 12px;
     }
     .streak-icon { font-size: 20px; flex-shrink: 0; }
-    .streak-info { flex: 1; min-width: 0; }
-    .streak-name { font-size: 12px; color: #a1a1aa; }
-    .streak-val { font-size: 18px; font-weight: 700; color: #fff; }
-    .streak-sub { font-size: 10px; color: #52525b; margin-top: 1px; }
-    .streak-fire { color: #f59e0b; font-size: 13px; }
+    .streak-info .streak-name { font-size: 12px; color: #a1a1aa; }
+    .streak-info .streak-val { font-size: 18px; font-weight: 700; color: #fff; }
+    .streak-info .streak-sub { font-size: 10px; color: #52525b; margin-top: 1px; }
 
-    /* Heatmap */
-    .heatmap { display: flex; flex-direction: column; gap: 4px; }
-    .heatmap-months { display: flex; gap: 4px; padding-left: 28px; margin-bottom: 4px; }
-    .heatmap-month { font-size: 10px; color: #3f3f46; }
-    .heatmap-row { display: flex; gap: 3px; align-items: center; }
-    .heatmap-day-label { font-size: 9px; color: #3f3f46; width: 24px; flex-shrink: 0; text-align: right; padding-right: 4px; }
-    .heatmap-cells { display: flex; gap: 3px; flex-wrap: wrap; }
+    .heatmap-cells { display: flex; flex-wrap: wrap; gap: 3px; }
     .heatmap-cell {
       width: 13px; height: 13px; border-radius: 2px;
       background: #1d1d20; flex-shrink: 0;
     }
     .heatmap-cell.great { background: #16a34a; }
-    .heatmap-cell.good  { background: #22c55e; opacity: 0.7; }
-    .heatmap-cell.short { background: #f59e0b; opacity: 0.8; }
-    .heatmap-cell.none  { background: #ef4444; opacity: 0.7; }
-    .heatmap-legend { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
-    .heatmap-legend span { font-size: 10px; color: #3f3f46; }
-    .legend-cell { width: 10px; height: 10px; border-radius: 2px; }
+    .heatmap-cell.good  { background: rgba(34,197,94,0.7); }
+    .heatmap-cell.short { background: rgba(245,158,11,0.8); }
+    .heatmap-cell.none  { background: rgba(239,68,68,0.7); }
+    .heatmap-legend { display: flex; align-items: center; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+    .heatmap-legend span { font-size: 10px; color: #52525b; }
+    .legend-cell { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
 
-    /* Sleep bars */
-    .sleep-bars { display: flex; flex-direction: column; gap: 6px; }
+    .sleep-bars { display: flex; flex-direction: column; gap: 7px; }
     .sleep-bar-row { display: flex; align-items: center; gap: 8px; }
     .sleep-bar-label { font-size: 11px; color: #52525b; width: 36px; flex-shrink: 0; }
     .sleep-bar-track { flex: 1; height: 8px; background: #1d1d20; border-radius: 4px; overflow: hidden; }
-    .sleep-bar-fill { height: 100%; border-radius: 4px; background: #6366f1; transition: width 0.4s ease; }
-    .sleep-bar-val { font-size: 11px; color: #71717a; width: 32px; text-align: right; flex-shrink: 0; }
+    .sleep-bar-fill { height: 100%; border-radius: 4px; }
+    .sleep-bar-val { font-size: 11px; color: #71717a; width: 38px; text-align: right; flex-shrink: 0; }
 
-    /* Insights */
     .insights { display: flex; flex-direction: column; gap: 8px; }
     .insight {
       background: #111113; border: 1px solid #1d1d20; border-radius: 8px;
@@ -126,29 +138,14 @@
     .insight-text { font-size: 12px; color: #a1a1aa; line-height: 1.5; }
     .insight-text strong { color: #e4e4e7; }
 
-    /* Energy row */
-    .energy-row { display: flex; gap: 6px; align-items: center; }
-    .energy-dot { width: 8px; height: 8px; border-radius: 50%; background: #27272a; flex-shrink: 0; }
-    .energy-dot.filled { background: #f59e0b; }
-
-    /* Log table */
-    .log-table { width: 100%; border-collapse: collapse; }
-    .log-table th { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: #3f3f46; text-align: left; padding: 0 12px 8px 0; }
-    .log-table td { font-size: 12px; color: #71717a; padding: 8px 12px 8px 0; border-top: 1px solid #1d1d20; }
-    .log-table td.highlight { color: #e4e4e7; }
-    .pill { display: inline-block; padding: 1px 7px; border-radius: 4px; font-size: 10px; }
-    .pill-good { background: rgba(34,197,94,0.1); color: #22c55e; }
-    .pill-okay { background: rgba(245,158,11,0.1); color: #f59e0b; }
-    .pill-bad  { background: rgba(239,68,68,0.1); color: #ef4444; }
-
-    .empty-state { text-align: center; color: #3f3f46; padding: 40px 20px; font-size: 13px; line-height: 1.8; }
-    .empty-state .big { font-size: 28px; margin-bottom: 8px; }
-
-    .skeleton { background: #1d1d20; border-radius: 4px; animation: pulse 1.8s ease-in-out infinite; }
+    .skeleton { background: #1d1d20; border-radius: 6px; animation: pulse 1.8s ease-in-out infinite; }
     @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
 
+    .empty-state { text-align: center; color: #3f3f46; padding: 48px 20px; font-size: 13px; line-height: 1.8; }
+    .empty-state .big { font-size: 32px; margin-bottom: 10px; }
+
     @media (max-width: 520px) {
-      body { padding: 20px 14px 40px; }
+      body { padding: 18px 14px 40px; }
       .stat-card .value { font-size: 18px; }
       .heatmap-cell { width: 10px; height: 10px; }
     }
@@ -161,26 +158,102 @@
     <div class="header-logo">M</div>
     <div class="header-title">
       <h1>mavinash-dev</h1>
-      <p id="last-synced">Syncing…</p>
+      <p id="last-synced">Loading…</p>
     </div>
   </div>
-  <button class="analyse-btn" id="analyse-btn" onclick="triggerAnalysis()">
-    ✦ Analyse Now
-  </button>
+  <button class="analyse-btn" id="analyse-btn" onclick="triggerAnalysis()">✦ Analyse Now</button>
 </div>
 <div class="analyse-toast" id="analyse-toast"></div>
 
-<nav class="tabs" style="max-width:1120px;margin:0 auto 28px">
+<nav class="tabs">
   <a href="index.html" class="tab">Projects</a>
   <a href="life.html" class="tab active">Life</a>
 </nav>
 
-<div id="app">
-  <div class="stats-strip">
-    <div class="stat-card"><div class="label">Weekly Score</div><div class="skeleton" style="height:22px;width:60%;margin-top:4px"></div></div>
-    <div class="stat-card"><div class="label">Days Logged</div><div class="skeleton" style="height:22px;width:40%;margin-top:4px"></div></div>
-    <div class="stat-card"><div class="label">Avg Sleep</div><div class="skeleton" style="height:22px;width:50%;margin-top:4px"></div></div>
-    <div class="stat-card"><div class="label">Best Streak</div><div class="skeleton" style="height:22px;width:45%;margin-top:4px"></div></div>
+<div id="pin-gate"></div>
+
+<div id="app" style="display:none">
+  <div class="range-bar">
+    <button class="range-pill active" data-r="7"  onclick="setRange(7)">7D</button>
+    <button class="range-pill"        data-r="30" onclick="setRange(30)">30D</button>
+    <button class="range-pill"        data-r="60" onclick="setRange(60)">60D</button>
+    <button class="range-pill"        data-r="0"  onclick="setRange(0)">All</button>
+  </div>
+
+  <div class="stats-strip" id="stats-strip">
+    <div class="stat-card"><div class="label">Days Logged</div><div class="skeleton" style="height:22px;width:55%;margin-top:6px"></div></div>
+    <div class="stat-card"><div class="label">Avg Sleep</div><div class="skeleton" style="height:22px;width:60%;margin-top:6px"></div></div>
+    <div class="stat-card"><div class="label">Avg Energy</div><div class="skeleton" style="height:22px;width:45%;margin-top:6px"></div></div>
+    <div class="stat-card"><div class="label">Weekly Score</div><div class="skeleton" style="height:22px;width:50%;margin-top:6px"></div></div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Streaks</div>
+    <div class="streaks" id="streaks-grid">
+      <div class="skeleton" style="height:64px;border-radius:10px"></div>
+      <div class="skeleton" style="height:64px;border-radius:10px"></div>
+      <div class="skeleton" style="height:64px;border-radius:10px"></div>
+      <div class="skeleton" style="height:64px;border-radius:10px"></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Sleep</div>
+    <div class="chart-grid" style="margin-bottom:14px">
+      <div class="chart-card">
+        <div class="chart-label">Duration over time</div>
+        <div class="chart-wrap"><canvas id="chart-sleep"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-label">Last 7 days</div>
+        <div class="sleep-bars" id="sleep-bars"><div class="skeleton" style="height:120px"></div></div>
+      </div>
+    </div>
+    <div class="chart-card" id="heatmap-card">
+      <div class="chart-label">Sleep heatmap</div>
+      <div class="heatmap-cells" id="heatmap-cells"></div>
+      <div class="heatmap-legend">
+        <span>Sleep:</span>
+        <div class="legend-cell" style="background:#16a34a"></div><span>≥7h</span>
+        <div class="legend-cell" style="background:rgba(34,197,94,0.7)"></div><span>6–7h</span>
+        <div class="legend-cell" style="background:rgba(245,158,11,0.8)"></div><span>&lt;6h</span>
+        <div class="legend-cell" style="background:rgba(239,68,68,0.7)"></div><span>none</span>
+        <div class="legend-cell" style="background:#1d1d20"></div><span>not logged</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Energy & Body</div>
+    <div class="chart-grid">
+      <div class="chart-card">
+        <div class="chart-label">Energy (1–10)</div>
+        <div class="chart-wrap"><canvas id="chart-energy"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-label">Weight (kg)</div>
+        <div class="chart-wrap"><canvas id="chart-weight"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Damage & Activities</div>
+    <div class="chart-grid">
+      <div class="chart-card">
+        <div class="chart-label">Damage per day</div>
+        <div class="chart-wrap"><canvas id="chart-damage"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-label">Total hours by activity</div>
+        <div class="chart-wrap" id="activity-wrap" style="height:180px"><canvas id="chart-activity"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section" id="insights-section">
+    <div class="section-title">AI Insights — by Gemini</div>
+    <div class="skeleton" style="height:180px;border-radius:10px"></div>
   </div>
 </div>
 
@@ -189,271 +262,486 @@
   const _t = ['github_pat_11BT5ZT6Q0gy','kcszclHXtz_U8mfhrkUH','fpKgSsnowpdbOs8rpawgfFjMurfkMKRqj5O5CG','LPE5SE0aE3JE'];
   const GH = { Accept: 'application/vnd.github.v3+json', Authorization: `token ${_t.join('')}` };
 
+  let allLogs = [];
+  let currentRange = 7;
+  const charts = {};
+
+  // ── Utilities ──────────────────────────────────────────────────────────────
+  function fmtHours(h) {
+    if (h == null || h === 0) return h === 0 ? '0h' : '—';
+    const hrs = Math.floor(h), mins = Math.round((h - hrs) * 60);
+    return mins ? `${hrs}h ${mins}m` : `${hrs}h`;
+  }
+
+  function getSleepHours(day) {
+    if (day.sleep?.sessions?.length) return day.sleep.total ?? 0;
+    if (day.sleep?.duration != null) return day.sleep.duration;
+    return 0;
+  }
+
+  function sleepQuality(h) {
+    if (!h) return 'none';
+    if (h >= 7) return 'great';
+    if (h >= 6) return 'good';
+    return 'short';
+  }
+
+  function localDateStr(d) {
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  }
+
+  function dayLabel(ds) {
+    const [y,m,d] = ds.split('-').map(Number);
+    return new Date(y,m-1,d).toLocaleDateString('en-IN',{day:'numeric',month:'short'});
+  }
+
+  function weekdayShort(ds) {
+    const [y,m,d] = ds.split('-').map(Number);
+    return new Date(y,m-1,d).toLocaleDateString('en-IN',{weekday:'short'}).slice(0,3);
+  }
+
+  function filterLogs(range) {
+    if (!range) return allLogs;
+    const dt = new Date(); dt.setDate(dt.getDate() - range);
+    const cutoff = localDateStr(dt);
+    return allLogs.filter(d => d.date >= cutoff);
+  }
+
+  // ── PIN Gate ───────────────────────────────────────────────────────────────
+  async function sha256(str) {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+  }
+
+  function showPin() {
+    document.getElementById('pin-gate').innerHTML = `
+      <div style="max-width:320px;margin:80px auto;text-align:center">
+        <div style="font-size:30px;margin-bottom:16px">🔒</div>
+        <div style="font-size:15px;font-weight:600;color:#fff;margin-bottom:6px">Life Dashboard</div>
+        <div style="font-size:12px;color:#52525b;margin-bottom:24px">Enter your PIN to continue</div>
+        <input id="pin-input" type="password" inputmode="numeric" maxlength="6" placeholder="······"
+          style="width:100%;padding:12px 16px;background:#18181b;border:1px solid #27272a;border-radius:10px;
+                 color:#fff;font-size:20px;text-align:center;letter-spacing:8px;outline:none;font-family:monospace" autofocus />
+        <div id="pin-error" style="margin-top:10px;font-size:12px;color:#ef4444;min-height:18px"></div>
+      </div>`;
+    const inp = document.getElementById('pin-input');
+    inp.addEventListener('input', e => { if (e.target.value.length === 6) verifyPin(); });
+    inp.addEventListener('keydown', e => { if (e.key === 'Enter') verifyPin(); });
+  }
+
+  async function verifyPin() {
+    const val = document.getElementById('pin-input').value;
+    if ((await sha256(val)) === PIN_HASH) {
+      sessionStorage.setItem('life_unlocked','true');
+      document.getElementById('pin-gate').innerHTML = '';
+      document.getElementById('app').style.display = '';
+      loadData();
+    } else {
+      const el = document.getElementById('pin-error');
+      el.textContent = 'Incorrect PIN';
+      document.getElementById('pin-input').value = '';
+      setTimeout(() => { if (el) el.textContent = ''; }, 2000);
+    }
+  }
+
+  // ── Data Fetching ──────────────────────────────────────────────────────────
+  function decode(b64) {
+    const bin = atob(b64.replace(/\n/g,''));
+    return new TextDecoder().decode(Uint8Array.from(bin, c => c.charCodeAt(0)));
+  }
+
+  async function fetchAllLogs() {
+    const res = await fetch('https://api.github.com/repos/mavinash-dev/life-log/contents/logs', { headers: GH });
+    if (!res.ok) throw new Error(`GitHub ${res.status}: could not load logs`);
+    const files = (await res.json()).filter(f => f.name.endsWith('.json'));
+
+    const contents = await Promise.all(
+      files.map(f => fetch(f.download_url).then(r => r.ok ? r.json() : null).catch(() => null))
+    );
+
+    const days = {};
+    for (let i = 0; i < files.length; i++) {
+      if (!contents[i]) continue;
+      const date = files[i].name
+        .replace(/-am\.json$/,'').replace(/-pm\.json$/,'')
+        .replace(/-sleep\.json$/,'').replace(/\.json$/,'');
+      if (!days[date]) days[date] = { date };
+      Object.assign(days[date], contents[i]);
+    }
+    return Object.values(days).sort((a,b) => a.date.localeCompare(b.date));
+  }
+
+  async function fetchInsights() {
+    const res = await fetch('https://api.github.com/repos/mavinash-dev/life-log/contents/insights.json', { headers: GH });
+    if (!res.ok) return null;
+    const file = await res.json();
+    return JSON.parse(decode(file.content));
+  }
+
+  // ── Compute ────────────────────────────────────────────────────────────────
+  function computeStats(logs) {
+    const daysLogged = logs.length;
+    const sleepDays = logs.filter(d => getSleepHours(d) > 0);
+    const avgSleep = sleepDays.length ? sleepDays.reduce((s,d) => s + getSleepHours(d), 0) / sleepDays.length : 0;
+    const energyDays = logs.filter(d => d.energy != null);
+    const avgEnergy = energyDays.length ? energyDays.reduce((s,d) => s + Number(d.energy), 0) / energyDays.length : 0;
+
+    const last7 = allLogs.slice(-7);
+    let habits = 0, total = last7.length * 4;
+    for (const d of last7) {
+      if (getSleepHours(d) >= 6) habits++;
+      if (d.exercise?.done) habits++;
+      if (d.eating === '😊 Good' || d.eating_quality === 'good') habits++;
+      if (d.water === '💧 Good') habits++;
+    }
+    const weeklyScore = total > 0 ? Math.round((habits / total) * 100) : 0;
+    return { daysLogged, avgSleep, avgEnergy, weeklyScore };
+  }
+
+  function computeStreaks() {
+    const byDate = {};
+    for (const d of allLogs) byDate[d.date] = d;
+
+    function streak(fn) {
+      let count = 0;
+      const dt = new Date();
+      for (let i = 0; i < 365; i++) {
+        const ds = localDateStr(dt);
+        const d = byDate[ds];
+        if (d && fn(d)) count++;
+        else if (i > 0) break;
+        dt.setDate(dt.getDate() - 1);
+      }
+      return count;
+    }
+    return {
+      sleep:    streak(d => getSleepHours(d) >= 6),
+      exercise: streak(d => !!d.exercise?.done),
+      eating:   streak(d => d.eating === '😊 Good' || d.eating_quality === 'good'),
+      water:    streak(d => d.water === '💧 Good'),
+    };
+  }
+
+  // ── Render ─────────────────────────────────────────────────────────────────
+  function renderStats(logs) {
+    const s = computeStats(logs);
+    const wkCol = s.weeklyScore >= 70 ? '#22c55e' : s.weeklyScore >= 40 ? '#f59e0b' : '#ef4444';
+    document.getElementById('stats-strip').innerHTML = `
+      <div class="stat-card">
+        <div class="label">Days Logged</div>
+        <div class="value">${s.daysLogged}</div>
+        <div class="sub">in selected range</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Avg Sleep</div>
+        <div class="value">${s.avgSleep ? fmtHours(s.avgSleep) : '—'}</div>
+        <div class="sub">${s.avgSleep >= 7 ? '✓ on target' : s.avgSleep ? '↓ below 7h' : 'no data'}</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Avg Energy</div>
+        <div class="value">${s.avgEnergy ? s.avgEnergy.toFixed(1) : '—'}</div>
+        <div class="sub">out of 10</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Weekly Score</div>
+        <div class="value" style="color:${wkCol}">${s.weeklyScore}%</div>
+        <div class="sub">last 7 days</div>
+      </div>`;
+  }
+
+  function renderStreaks() {
+    const s = computeStreaks();
+    document.getElementById('streaks-grid').innerHTML = [
+      { icon: '😴', name: 'Sleep ≥6h',  key: 'sleep',    unit: 'nights' },
+      { icon: '💪', name: 'Exercise',    key: 'exercise', unit: 'days'   },
+      { icon: '🥗', name: 'Eating well', key: 'eating',   unit: 'days'   },
+      { icon: '💧', name: 'Water',       key: 'water',    unit: 'days'   },
+    ].map(({ icon, name, key, unit }) => {
+      const v = s[key] ?? 0;
+      return `<div class="streak-card">
+        <div class="streak-icon">${icon}</div>
+        <div class="streak-info">
+          <div class="streak-name">${name}</div>
+          <div class="streak-val">${v > 0 ? v + ' 🔥' : '<span style="color:#3f3f46">0</span>'}</div>
+          <div class="streak-sub">${v > 0 ? `${v} ${unit} in a row` : 'Start the streak!'}</div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function renderHeatmap() {
+    const byDate = {};
+    for (const d of allLogs) byDate[d.date] = d;
+
+    let start, end = new Date();
+    if (!currentRange) {
+      start = allLogs.length ? new Date(allLogs[0].date + 'T12:00:00') : new Date();
+    } else {
+      start = new Date(); start.setDate(start.getDate() - currentRange + 1);
+    }
+
+    const cells = [];
+    const cur = new Date(start);
+    while (cur <= end) {
+      const ds = localDateStr(cur);
+      const log = byDate[ds];
+      const h = log ? getSleepHours(log) : null;
+      const q = h == null ? '' : sleepQuality(h);
+      const tip = h != null ? `${dayLabel(ds)}: ${fmtHours(h)} sleep` : `${dayLabel(ds)}: not logged`;
+      cells.push(`<div class="heatmap-cell ${q}" title="${tip}"></div>`);
+      cur.setDate(cur.getDate() + 1);
+    }
+    document.getElementById('heatmap-cells').innerHTML = cells.join('');
+  }
+
+  function renderSleepBars() {
+    const last7 = allLogs.slice(-7);
+    if (!last7.length) {
+      document.getElementById('sleep-bars').innerHTML = '<div style="color:#3f3f46;font-size:12px;padding:8px 0">No data yet</div>';
+      return;
+    }
+    document.getElementById('sleep-bars').innerHTML = last7.map(d => {
+      const h = getSleepHours(d);
+      const pct = Math.min((h / 10) * 100, 100);
+      const col = h >= 7 ? '#22c55e' : h >= 6 ? '#6366f1' : h > 0 ? '#f59e0b' : '#3f3f46';
+      return `<div class="sleep-bar-row">
+        <div class="sleep-bar-label">${weekdayShort(d.date)}</div>
+        <div class="sleep-bar-track"><div class="sleep-bar-fill" style="width:${pct}%;background:${col}"></div></div>
+        <div class="sleep-bar-val">${h > 0 ? fmtHours(h) : '—'}</div>
+      </div>`;
+    }).join('');
+  }
+
+  function mkChart(id, config) {
+    if (charts[id]) charts[id].destroy();
+    charts[id] = new Chart(document.getElementById(id).getContext('2d'), config);
+  }
+
+  const AXIS_STYLE = {
+    x: { grid: { color: '#1d1d20' }, ticks: { color: '#52525b', font: { size: 9 }, maxTicksLimit: 8 } },
+    y: { grid: { color: '#1d1d20' }, ticks: { color: '#52525b', font: { size: 10 } } }
+  };
+  const TOOLTIP_STYLE = {
+    backgroundColor: '#18181b', borderColor: '#27272a', borderWidth: 1,
+    titleColor: '#a1a1aa', bodyColor: '#e4e4e7', padding: 8
+  };
+
+  function renderCharts(logs) {
+    const labels = logs.map(d => dayLabel(d.date));
+
+    // Sleep
+    const sleepVals = logs.map(d => { const h = getSleepHours(d); return h > 0 ? h : null; });
+    mkChart('chart-sleep', {
+      type: 'line',
+      data: { labels, datasets: [{
+        data: sleepVals,
+        borderColor: '#6366f1', backgroundColor: 'rgba(99,102,241,0.08)',
+        fill: true, tension: 0.4, pointRadius: 3, spanGaps: false,
+        pointBackgroundColor: sleepVals.map(h => h >= 7 ? '#22c55e' : h >= 6 ? '#6366f1' : h > 0 ? '#f59e0b' : '#ef4444'),
+      }]},
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { ...TOOLTIP_STYLE, callbacks: { label: c => `${fmtHours(c.raw)} sleep` } } },
+        scales: { x: AXIS_STYLE.x, y: { ...AXIS_STYLE.y, min: 0, max: 12, ticks: { ...AXIS_STYLE.y.ticks, callback: v => v+'h' } } }
+      }
+    });
+
+    // Energy
+    const energyVals = logs.map(d => d.energy != null ? Number(d.energy) : null);
+    mkChart('chart-energy', {
+      type: 'line',
+      data: { labels, datasets: [{
+        data: energyVals,
+        borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.08)',
+        fill: true, tension: 0.4, pointRadius: 3, spanGaps: false,
+      }]},
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { ...TOOLTIP_STYLE, callbacks: { label: c => `Energy: ${c.raw}/10` } } },
+        scales: { x: AXIS_STYLE.x, y: { ...AXIS_STYLE.y, min: 0, max: 10, ticks: { ...AXIS_STYLE.y.ticks, stepSize: 2 } } }
+      }
+    });
+
+    // Weight
+    const weightVals = logs.map(d => d.weight ? Number(d.weight) : null);
+    mkChart('chart-weight', {
+      type: 'line',
+      data: { labels, datasets: [{
+        data: weightVals,
+        borderColor: '#22d3ee', backgroundColor: 'transparent',
+        fill: false, tension: 0.3, pointRadius: 4, spanGaps: false,
+      }]},
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { ...TOOLTIP_STYLE, callbacks: { label: c => `${c.raw} kg` } } },
+        scales: { x: AXIS_STYLE.x, y: { ...AXIS_STYLE.y, ticks: { ...AXIS_STYLE.y.ticks, callback: v => v+'kg' } } }
+      }
+    });
+
+    // Damage
+    const dmgVals = logs.map(d => {
+      if (d.damage == null) return null;
+      if (d.damage === '4+') return 4;
+      return Number(d.damage);
+    });
+    const dmgColors = dmgVals.map(v => {
+      if (v == null) return 'transparent';
+      if (v === 0) return 'rgba(34,197,94,0.8)';
+      if (v === 1) return 'rgba(167,139,250,0.8)';
+      if (v === 2) return 'rgba(124,58,237,0.8)';
+      if (v === 3) return 'rgba(147,51,234,0.8)';
+      return 'rgba(192,38,211,0.9)';
+    });
+    mkChart('chart-damage', {
+      type: 'bar',
+      data: { labels, datasets: [{ data: dmgVals, backgroundColor: dmgColors, borderRadius: 4, borderSkipped: false }] },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { ...TOOLTIP_STYLE } },
+        scales: { x: AXIS_STYLE.x, y: { ...AXIS_STYLE.y, min: 0, max: 4, ticks: { ...AXIS_STYLE.y.ticks, stepSize: 1 } } }
+      }
+    });
+
+    // Activities — total hours per activity in range
+    const totals = {};
+    for (const d of logs) {
+      for (const [k,v] of Object.entries(d.activities || {})) {
+        totals[k] = (totals[k] || 0) + (Number(v) || 0);
+      }
+    }
+    const actEntries = Object.entries(totals).sort((a,b) => b[1]-a[1]).slice(0,8);
+    const ACT_COLORS = ['#6366f1','#22d3ee','#22c55e','#f59e0b','#f97316','#a78bfa','#ec4899','#84cc16'];
+
+    const actWrap = document.getElementById('activity-wrap');
+    actWrap.style.height = Math.max(160, actEntries.length * 32) + 'px';
+
+    mkChart('chart-activity', {
+      type: 'bar',
+      data: {
+        labels: actEntries.map(([k]) => k),
+        datasets: [{ data: actEntries.map(([,v]) => v), backgroundColor: ACT_COLORS.slice(0,actEntries.length), borderRadius: 4, borderSkipped: false }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { ...TOOLTIP_STYLE, callbacks: { label: c => `${c.raw}h` } } },
+        scales: {
+          x: { ...AXIS_STYLE.x, ticks: { ...AXIS_STYLE.x.ticks, callback: v => v+'h' } },
+          y: { ...AXIS_STYLE.y }
+        }
+      }
+    });
+  }
+
+  function renderInsights(data) {
+    const el = document.getElementById('insights-section');
+    if (!data || data.empty) {
+      el.innerHTML = `
+        <div class="section-title">AI Insights — by Gemini</div>
+        <div style="background:#111113;border:1px solid #1d1d20;border-radius:10px;padding:24px;text-align:center;color:#3f3f46;font-size:12px">
+          No AI insights yet. Click <strong style="color:#a1a1aa">✦ Analyse Now</strong> to generate.
+        </div>`;
+      return;
+    }
+    const ts = data.generated_at
+      ? new Date(data.generated_at).toLocaleDateString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})
+      : '';
+    el.innerHTML = `
+      <div class="section-title">AI Insights — by Gemini
+        <span style="font-weight:400;text-transform:none;letter-spacing:0;color:#27272a;margin-left:8px">${ts}</span>
+      </div>
+      ${data.summary ? `
+      <div style="background:#111113;border:1px solid #1d1d20;border-left:3px solid #6366f1;border-radius:10px;
+                  padding:14px 16px;font-size:13px;color:#a1a1aa;line-height:1.5;margin-bottom:12px">
+        ⚡ ${data.summary}
+      </div>` : ''}
+      <div class="insights">
+        ${(data.insights || []).map(i => `
+          <div class="insight">
+            <div class="insight-icon">${i.icon}</div>
+            <div class="insight-text">${i.text}</div>
+          </div>`).join('')}
+      </div>`;
+  }
+
+  // ── Range switch ───────────────────────────────────────────────────────────
+  function setRange(range) {
+    currentRange = range;
+    document.querySelectorAll('.range-pill').forEach(p =>
+      p.classList.toggle('active', Number(p.dataset.r) === range)
+    );
+    const filtered = filterLogs(range);
+    renderStats(filtered);
+    renderHeatmap();
+    renderCharts(filtered);
+  }
+
+  // ── Boot ───────────────────────────────────────────────────────────────────
+  async function loadData() {
+    try {
+      allLogs = await fetchAllLogs();
+      const filtered = filterLogs(currentRange);
+      renderStats(filtered);
+      renderStreaks();
+      renderSleepBars();
+      renderHeatmap();
+      renderCharts(filtered);
+      document.getElementById('last-synced').textContent =
+        'Synced ' + new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+
+      fetchInsights().then(renderInsights).catch(() => renderInsights(null));
+    } catch (err) {
+      document.getElementById('app').innerHTML = `
+        <div class="empty-state">
+          <div class="big">⚠️</div>
+          <div style="color:#a1a1aa">${err.message}</div>
+          <button onclick="loadData()" style="margin-top:16px;padding:8px 20px;background:#27272a;
+            border:1px solid #3f3f46;color:#e4e4e7;border-radius:8px;font-size:12px;cursor:pointer">Retry</button>
+        </div>`;
+    }
+  }
+
+  // ── Analyse Now ────────────────────────────────────────────────────────────
   async function triggerAnalysis() {
     const pat = localStorage.getItem('vitals_pat');
-    const btn   = document.getElementById('analyse-btn');
+    const btn = document.getElementById('analyse-btn');
     const toast = document.getElementById('analyse-toast');
-
     if (!pat) {
       toast.className = 'analyse-toast show error';
       toast.textContent = 'Open VITALS app first and enter your PAT to enable this.';
       setTimeout(() => toast.className = 'analyse-toast', 3000);
       return;
     }
-
-    btn.classList.add('loading');
-    btn.textContent = '⟳ Running…';
+    btn.classList.add('loading'); btn.textContent = '⟳ Running…';
     toast.className = 'analyse-toast show running';
     toast.textContent = '⟳ Workflow triggered — Gemini is analysing your data. Refresh in ~60 seconds.';
-
     try {
       const res = await fetch(
         'https://api.github.com/repos/mavinash-dev/life-log/actions/workflows/analyze.yml/dispatches',
-        {
-          method: 'POST',
-          headers: {
-            Authorization: `token ${pat}`,
-            Accept: 'application/vnd.github.v3+json',
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ ref: 'main' })
-        }
+        { method:'POST', headers:{ Authorization:`token ${pat}`, Accept:'application/vnd.github.v3+json', 'Content-Type':'application/json' },
+          body: JSON.stringify({ ref:'main' }) }
       );
-
       if (res.status === 204) {
         toast.className = 'analyse-toast show done';
         toast.textContent = '✓ Analysis started. Insights update in ~60s — refresh to see them.';
         btn.textContent = '✓ Started';
-        setTimeout(() => {
-          btn.classList.remove('loading');
-          btn.textContent = '✦ Analyse Now';
-          toast.className = 'analyse-toast';
-        }, 60000);
-      } else {
-        throw new Error(`GitHub returned ${res.status}`);
-      }
+        setTimeout(() => { btn.classList.remove('loading'); btn.textContent = '✦ Analyse Now'; toast.className = 'analyse-toast'; }, 60000);
+      } else throw new Error(`GitHub returned ${res.status}`);
     } catch (e) {
-      btn.classList.remove('loading');
-      btn.textContent = '✦ Analyse Now';
+      btn.classList.remove('loading'); btn.textContent = '✦ Analyse Now';
       toast.className = 'analyse-toast show error';
       toast.textContent = `✗ ${e.message}`;
       setTimeout(() => toast.className = 'analyse-toast', 4000);
     }
   }
 
-  async function sha256(str) {
-    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
-    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+  // ── Init ───────────────────────────────────────────────────────────────────
+  if (sessionStorage.getItem('life_unlocked') === 'true') {
+    document.getElementById('app').style.display = '';
+    loadData();
+  } else {
+    showPin();
   }
-
-  async function checkPin() {
-    // Already unlocked this session
-    if (sessionStorage.getItem('life_unlocked') === 'true') { load(); return; }
-
-    document.getElementById('app').innerHTML = `
-      <div style="max-width:320px;margin:80px auto;text-align:center">
-        <div style="font-size:28px;margin-bottom:16px">🔒</div>
-        <div style="font-size:15px;font-weight:600;color:#fff;margin-bottom:6px">Life Dashboard</div>
-        <div style="font-size:12px;color:#52525b;margin-bottom:24px">Enter your PIN to continue</div>
-        <input id="pin-input" type="password" inputmode="numeric" maxlength="6"
-          placeholder="······"
-          style="width:100%;padding:12px 16px;background:#18181b;border:1px solid #27272a;border-radius:10px;color:#fff;font-size:20px;text-align:center;letter-spacing:8px;outline:none;font-family:monospace"
-          autofocus />
-        <div id="pin-error" style="margin-top:10px;font-size:12px;color:#ef4444;min-height:18px"></div>
-      </div>`;
-
-    document.getElementById('pin-input').addEventListener('keydown', async (e) => {
-      if (e.key === 'Enter') await verifyPin();
-    });
-    document.getElementById('pin-input').addEventListener('input', async (e) => {
-      if (e.target.value.length === 6) await verifyPin();
-    });
-  }
-
-  async function verifyPin() {
-    const input = document.getElementById('pin-input').value;
-    const hash = await sha256(input);
-    if (hash === PIN_HASH) {
-      sessionStorage.setItem('life_unlocked', 'true');
-      load();
-    } else {
-      const el = document.getElementById('pin-error');
-      el.textContent = 'Incorrect PIN';
-      document.getElementById('pin-input').value = '';
-      document.getElementById('pin-input').focus();
-      setTimeout(() => { if (el) el.textContent = ''; }, 2000);
-    }
-  }
-
-  function decode(b64) {
-    const bin = atob(b64.replace(/\n/g,''));
-    return new TextDecoder().decode(Uint8Array.from(bin, c => c.charCodeAt(0)));
-  }
-
-  function fmtHours(h) {
-    if (!h && h !== 0) return '—';
-    const hrs = Math.floor(h), mins = Math.round((h - hrs) * 60);
-    return mins ? `${hrs}h ${mins}m` : `${hrs}h`;
-  }
-
-  async function load() {
-    try {
-      // Read pre-computed insights.json generated by GitHub Actions + Gemini
-      const res = await fetch('https://api.github.com/repos/mavinash-dev/life-log/contents/insights.json', { headers: GH });
-
-      if (!res.ok) {
-        if (res.status === 404) throw new Error('no_insights');
-        throw new Error(`GitHub API error ${res.status}`);
-      }
-
-      const file = await res.json();
-      const data = JSON.parse(decode(file.content));
-
-      if (data.empty) throw new Error('no_insights');
-
-      const wkColor = data.weekly_score >= 70 ? '#22c55e' : data.weekly_score >= 40 ? '#f59e0b' : '#ef4444';
-      const bestStreak = Math.max(...Object.values(data.streaks || {}));
-
-      document.getElementById('app').innerHTML = `
-        <div class="stats-strip">
-          <div class="stat-card">
-            <div class="label">Weekly Score</div>
-            <div class="value" style="color:${wkColor}">${data.weekly_score ?? '—'}%</div>
-            <div class="sub">this week</div>
-          </div>
-          <div class="stat-card">
-            <div class="label">Days Logged</div>
-            <div class="value">${data.days_analyzed ?? '—'}</div>
-            <div class="sub">total entries</div>
-          </div>
-          <div class="stat-card">
-            <div class="label">Avg Sleep</div>
-            <div class="value">${fmtHours(data.avg_sleep_hours)}</div>
-            <div class="sub">${data.avg_sleep_hours >= 7 ? '✓ on target' : '↓ below 7h'}</div>
-          </div>
-          <div class="stat-card">
-            <div class="label">Best Streak</div>
-            <div class="value">${bestStreak > 0 ? bestStreak + '🔥' : '—'}</div>
-            <div class="sub">days in a row</div>
-          </div>
-        </div>
-
-        ${data.summary ? `
-        <div class="section">
-          <div style="background:#111113;border:1px solid #1d1d20;border-radius:10px;padding:14px 16px;font-size:13px;color:#a1a1aa;line-height:1.5;border-left:3px solid #6366f1">
-            ⚡ ${data.summary}
-          </div>
-        </div>` : ''}
-
-        <div class="section">
-          <div class="section-title">Streaks</div>
-          <div class="streaks">
-            ${[
-              { icon: '😴', name: 'Sleep ≥6h',  key: 'sleep',    unit: 'nights' },
-              { icon: '💪', name: 'Exercise',    key: 'exercise', unit: 'days'   },
-              { icon: '🥗', name: 'Eating well', key: 'eating',   unit: 'days'   },
-              { icon: '💧', name: 'Water',       key: 'water',    unit: 'days'   },
-            ].map(s => {
-              const val = data.streaks?.[s.key] ?? 0;
-              return `
-                <div class="streak-card">
-                  <div class="streak-icon">${s.icon}</div>
-                  <div class="streak-info">
-                    <div class="streak-name">${s.name}</div>
-                    <div class="streak-val">${val > 0 ? val + ' <span class="streak-fire">🔥</span>' : '<span style="color:#3f3f46">0</span>'}</div>
-                    <div class="streak-sub">${val > 0 ? val + ' ' + s.unit + ' in a row' : 'Start the streak'}</div>
-                  </div>
-                </div>`;
-            }).join('')}
-          </div>
-        </div>
-
-        ${data.heatmap?.length ? `
-        <div class="section">
-          <div class="section-title">Last 30 Days</div>
-          <div style="background:#111113;border:1px solid #1d1d20;border-radius:10px;padding:16px">
-            <div style="display:flex;flex-wrap:wrap;gap:3px">
-              ${data.heatmap.map(d => {
-                const cls = d.quality === 'great' ? 'great' : d.quality === 'good' ? 'good' : d.quality === 'short' ? 'short' : d.quality === 'none' ? 'none' : '';
-                const label = new Date(d.date + 'T12:00:00').toLocaleDateString('en-IN',{day:'numeric',month:'short'});
-                return `<div class="heatmap-cell ${cls}" title="${label}"></div>`;
-              }).join('')}
-            </div>
-            <div class="heatmap-legend" style="margin-top:10px">
-              <span>Sleep:</span>
-              <div class="legend-cell" style="background:#16a34a"></div><span>≥7h</span>
-              <div class="legend-cell" style="background:#22c55e;opacity:0.7"></div><span>6–7h</span>
-              <div class="legend-cell" style="background:#f59e0b;opacity:0.8"></div><span>&lt;6h</span>
-              <div class="legend-cell" style="background:#ef4444;opacity:0.7"></div><span>none</span>
-              <div class="legend-cell" style="background:#1d1d20"></div><span>not logged</span>
-            </div>
-          </div>
-        </div>` : ''}
-
-        ${data.sleep_bars?.length ? `
-        <div class="section">
-          <div class="section-title">Sleep — Last 7 Days</div>
-          <div style="background:#111113;border:1px solid #1d1d20;border-radius:10px;padding:16px">
-            <div class="sleep-bars">
-              ${data.sleep_bars.map(d => {
-                const pct = Math.min(((d.hours || 0) / 10) * 100, 100);
-                const col = d.quality === 'great' ? '#22c55e' : d.quality === 'good' ? '#6366f1' : d.quality === 'short' ? '#f59e0b' : '#ef4444';
-                return `
-                  <div class="sleep-bar-row">
-                    <div class="sleep-bar-label">${d.label}</div>
-                    <div class="sleep-bar-track"><div class="sleep-bar-fill" style="width:${pct}%;background:${col}"></div></div>
-                    <div class="sleep-bar-val">${d.quality === 'none' ? 'none' : fmtHours(d.hours)}</div>
-                  </div>`;
-              }).join('')}
-            </div>
-            <div style="margin-top:10px;font-size:11px;color:#52525b">
-              Avg bed time: ${data.avg_bedtime ?? '—'} · Wake: ${data.avg_waketime ?? '—'}
-            </div>
-          </div>
-        </div>` : ''}
-
-        ${data.insights?.length ? `
-        <div class="section">
-          <div class="section-title">Insights — by Gemini</div>
-          <div class="insights">
-            ${data.insights.map(i => `
-              <div class="insight">
-                <div class="insight-icon">${i.icon}</div>
-                <div class="insight-text">${i.text}</div>
-              </div>`).join('')}
-          </div>
-        </div>` : ''}
-
-        <div style="max-width:1120px;margin:0 auto;text-align:right;font-size:10px;color:#27272a">
-          Analysed ${new Date(data.generated_at).toLocaleDateString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})} · Powered by Gemini
-        </div>
-      `;
-
-      document.getElementById('last-synced').textContent =
-        'Synced ' + new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
-
-    } catch (err) {
-      if (err.message === 'no_insights') {
-        document.getElementById('app').innerHTML = `
-          <div class="empty-state">
-            <div class="big">⚡</div>
-            <div>No insights yet.</div>
-            <div style="margin-top:6px;color:#52525b">Log your first day with <strong style="color:#a1a1aa">VITALS</strong> on iPhone.</div>
-            <div style="margin-top:4px;color:#52525b">Gemini analyses your data automatically after each log.</div>
-          </div>`;
-      } else {
-        document.getElementById('app').innerHTML = `
-          <div class="empty-state">
-            <div class="big">⚠️</div>
-            <div style="color:#a1a1aa">${err.message}</div>
-            <button onclick="load()" style="margin-top:14px;padding:7px 18px;background:#27272a;border:1px solid #3f3f46;color:#e4e4e7;border-radius:8px;font-size:12px;cursor:pointer">Retry</button>
-          </div>`;
-      }
-      document.getElementById('last-synced').textContent = 'Sync failed';
-    }
-  }
-
-  checkPin();
 </script>
 </body>
 </html>
