@@ -18,27 +18,61 @@
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       background: var(--bg); color: var(--text);
       min-height: 100vh; min-height: -webkit-fill-available;
-      padding: max(env(safe-area-inset-top),20px) 18px max(env(safe-area-inset-bottom),24px);
+      padding: max(env(safe-area-inset-top),20px) 18px max(env(safe-area-inset-bottom),32px);
     }
     .screen { max-width: 420px; margin: 0 auto; }
-
-    /* Header */
     .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-top: 6px; }
     .logo { display: flex; align-items: center; gap: 8px; }
     .logo-icon { width: 32px; height: 32px; border-radius: 9px; background: linear-gradient(135deg,#6366f1,#8b5cf6); display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 800; color: #fff; }
     .logo-text { font-size: 17px; font-weight: 700; color: #fff; letter-spacing: -0.3px; }
     .header-date { font-size: 11px; color: var(--dim); text-align: right; }
 
-    /* Tabs */
     .tabs { display: flex; gap: 3px; background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 3px; margin-bottom: 22px; }
     .tab-btn { flex: 1; padding: 8px 4px; border: none; border-radius: 7px; font-size: 12px; font-weight: 500; cursor: pointer; background: transparent; color: var(--dim); transition: all 0.12s; -webkit-tap-highlight-color: transparent; }
     .tab-btn.active { background: var(--accent); color: #fff; }
 
-    /* Section */
     .section { margin-bottom: 20px; }
     .section-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.7px; color: var(--dim); font-weight: 600; margin-bottom: 10px; }
 
-    /* Option chips */
+    /* Vibe check */
+    .vibe-row { display: flex; gap: 6px; }
+    .vibe-btn {
+      flex: 1; padding: 14px 4px 10px; background: var(--card); border: 1.5px solid var(--border);
+      border-radius: 12px; cursor: pointer; text-align: center; transition: all 0.12s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .vibe-btn:active { transform: scale(0.95); }
+    .vibe-emoji { font-size: 22px; display: block; margin-bottom: 4px; }
+    .vibe-label { font-size: 10px; color: var(--dim); font-weight: 500; }
+
+    /* Meal checklist */
+    .meal-item {
+      display: flex; align-items: center; gap: 12px; padding: 12px 14px;
+      border-bottom: 1px solid var(--border); cursor: pointer;
+      -webkit-tap-highlight-color: transparent; transition: background 0.1s;
+    }
+    .meal-item:last-child { border-bottom: none; }
+    .meal-item:active { background: rgba(255,255,255,0.02); }
+    .meal-check {
+      width: 22px; height: 22px; border-radius: 6px; border: 1.5px solid var(--border2);
+      flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700; transition: all 0.1s;
+    }
+    .meal-info { flex: 1; min-width: 0; }
+    .meal-name { font-size: 13px; font-weight: 500; color: var(--text); }
+    .meal-desc { font-size: 11px; color: var(--dim); margin-top: 1px; }
+    .meal-cal { font-size: 12px; font-weight: 600; color: var(--dim); flex-shrink: 0; }
+
+    /* Cal bar */
+    .cal-bar-wrap { background: var(--card); border: 1.5px solid var(--border); border-radius: 12px; padding: 14px 16px; margin-bottom: 16px; }
+    .cal-bar-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+    .cal-total { font-size: 20px; font-weight: 700; color: #fff; }
+    .cal-goal-label { font-size: 11px; color: var(--dim); }
+    .cal-track { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin-bottom: 5px; }
+    .cal-fill { height: 100%; border-radius: 3px; transition: width 0.4s; }
+    .cal-note { font-size: 10px; color: var(--dim); }
+
+    /* Chips */
     .chips { display: flex; gap: 7px; flex-wrap: wrap; }
     .chip { padding: 9px 14px; background: var(--card); border: 1.5px solid var(--border); border-radius: 20px; color: var(--sub); font-size: 13px; cursor: pointer; white-space: nowrap; transition: all 0.1s; -webkit-tap-highlight-color: transparent; }
     .chip:active { transform: scale(0.96); }
@@ -46,38 +80,26 @@
     .chip.on-accent { border-color: var(--accent); color: var(--accent); background: rgba(99,102,241,0.1); }
     .chip.on-amber  { border-color: var(--amber);  color: var(--amber);  background: rgba(245,158,11,0.1); }
     .chip.on-red    { border-color: var(--red);    color: var(--red);    background: rgba(239,68,68,0.1); }
-
-    /* Meal rows */
-    .meal-row { display: flex; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); gap: 8px; }
-    .meal-row:last-child { border-bottom: none; }
-    .meal-name { font-size: 13px; color: var(--sub); width: 80px; flex-shrink: 0; }
-    .meal-opts { display: flex; gap: 5px; flex: 1; }
-    .meal-opt { flex: 1; padding: 6px 4px; background: var(--card); border: 1.5px solid var(--border); border-radius: 8px; font-size: 11px; color: var(--dim); cursor: pointer; text-align: center; transition: all 0.1s; -webkit-tap-highlight-color: transparent; }
-
-    /* Energy */
-    .energy-row { display: flex; gap: 6px; flex-wrap: wrap; }
-    .e-btn { flex: 1; min-width: 36px; padding: 11px 4px; background: var(--card); border: 1.5px solid var(--border); border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; text-align: center; transition: all 0.1s; -webkit-tap-highlight-color: transparent; }
+    .chip.on-purple { border-color: #a78bfa;       color: #a78bfa;       background: rgba(167,139,250,0.1); }
 
     /* Stepper */
     .activity-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
     .activity-row:last-child { border-bottom: none; }
     .activity-label { font-size: 13px; color: var(--sub); }
     .stepper { display: flex; align-items: center; gap: 10px; }
-    .s-btn { width: 30px; height: 30px; border-radius: 50%; background: var(--card); border: 1.5px solid var(--border2); color: var(--text); font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; -webkit-tap-highlight-color: transparent; }
+    .s-btn { width: 30px; height: 30px; border-radius: 50%; background: var(--card); border: 1.5px solid var(--border2); color: var(--text); font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; -webkit-tap-highlight-color: transparent; flex-shrink: 0; }
     .s-btn:active { background: var(--border2); }
-    .s-val { min-width: 40px; text-align: center; font-size: 13px; font-weight: 600; color: var(--text); }
+    .s-val { min-width: 44px; text-align: center; font-size: 13px; font-weight: 600; color: var(--text); }
 
-    /* Number input */
+    /* Number + text inputs */
     .num-input { width: 100%; padding: 11px 14px; background: var(--card); border: 1.5px solid var(--border); border-radius: 10px; color: var(--text); font-size: 16px; outline: none; -webkit-appearance: none; }
     .num-input:focus { border-color: var(--accent); }
     .num-input::placeholder { color: var(--dim); }
-
-    /* Text area */
     .txt-input { width: 100%; padding: 11px 14px; background: var(--card); border: 1.5px solid var(--border); border-radius: 10px; color: var(--text); font-size: 14px; outline: none; resize: none; height: 68px; font-family: inherit; color-scheme: dark; }
     .txt-input:focus { border-color: var(--accent); }
     .txt-input::placeholder { color: var(--dim); }
 
-    /* Custom food input */
+    /* Food text input */
     .custom-row { display: flex; gap: 8px; margin-top: 8px; }
     .custom-input { flex: 1; padding: 9px 12px; background: var(--card); border: 1.5px solid var(--border); border-radius: 10px; color: var(--text); font-size: 13px; outline: none; }
     .custom-input:focus { border-color: var(--accent); }
@@ -86,7 +108,7 @@
     .custom-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
     .custom-tag { padding: 4px 10px; background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.3); border-radius: 20px; font-size: 12px; color: var(--accent); cursor: pointer; }
 
-    /* Sleep sessions */
+    /* Sleep */
     .sleep-session { background: var(--card); border: 1.5px solid var(--border); border-radius: 10px; padding: 13px; margin-bottom: 10px; }
     .session-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
     .session-num { font-size: 12px; color: var(--dim); }
@@ -98,20 +120,32 @@
     .dur-label { text-align: center; font-size: 11px; color: var(--dim); margin-top: 7px; }
     .dur-label span { color: var(--text); font-weight: 600; }
     .add-session-btn { width: 100%; padding: 10px; background: transparent; border: 1.5px dashed var(--border2); border-radius: 10px; color: var(--dim); font-size: 13px; cursor: pointer; margin-bottom: 14px; }
-    .total-sleep { background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.2); border-radius: 10px; padding: 11px 16px; text-align: center; font-size: 13px; color: var(--sub); }
-    .total-sleep span { font-size: 15px; font-weight: 700; color: #fff; }
+    .sleep-summary { background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.2); border-radius: 10px; padding: 12px 16px; }
+    .sleep-summary-main { font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 2px; }
+    .sleep-summary-sub { font-size: 12px; color: var(--dim); }
+    .cycles-bar-wrap { margin-top: 8px; }
+    .cycles-track { height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+    .cycles-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.3s; }
 
-    /* Submit */
+    /* Workout */
+    .rest-toggle { padding: 12px 16px; background: var(--card); border: 1.5px solid var(--border); border-radius: 10px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; margin-bottom: 12px; -webkit-tap-highlight-color: transparent; }
+    .rest-label { font-size: 13px; color: var(--sub); }
+    .rest-switch { width: 42px; height: 24px; border-radius: 12px; background: var(--border2); position: relative; transition: background 0.2s; }
+    .rest-switch.on { background: var(--accent); }
+    .rest-knob { width: 18px; height: 18px; border-radius: 9px; background: #fff; position: absolute; top: 3px; left: 3px; transition: left 0.2s; }
+    .rest-switch.on .rest-knob { left: 21px; }
+
+    /* Save/error */
     .save-btn { width: 100%; padding: 15px; border: none; border-radius: 12px; background: var(--accent); color: #fff; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 4px; -webkit-tap-highlight-color: transparent; }
     .save-btn:active { opacity: 0.85; }
     .save-btn:disabled { opacity: 0.45; }
-    .err { font-size: 12px; color: var(--red); margin-top: 6px; min-height: 16px; }
+    .err { font-size: 12px; color: var(--red); margin-top: 8px; min-height: 16px; }
 
     /* Success */
     .success { text-align: center; padding: 40px 0; display: flex; flex-direction: column; align-items: center; gap: 14px; }
     .success-icon { font-size: 48px; }
     .success-title { font-size: 19px; font-weight: 700; color: #fff; }
-    .success-chips { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+    .success-chips { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
     .s-chip { padding: 5px 13px; background: var(--card); border: 1px solid var(--border); border-radius: 20px; font-size: 12px; color: var(--sub); }
     .s-chip b { color: var(--text); }
     .success-actions { display: flex; flex-direction: column; gap: 8px; width: 100%; }
@@ -131,76 +165,80 @@
 <script>
   const OWNER = 'mavinash-dev', REPO = 'life-log', PAT_KEY = 'vitals_pat';
   const DASH  = 'https://mavinash-dev.github.io/dashboard/life.html';
+  const CAL_TARGET = 2800;
+
+  const VIBES = [
+    { key:'dead',    emoji:'💀', label:'Dead',    energy:2,  color:'#ef4444' },
+    { key:'low',     emoji:'😪', label:'Low',     energy:4,  color:'#f97316' },
+    { key:'okay',    emoji:'😐', label:'Okay',    energy:5,  color:'#f59e0b' },
+    { key:'charged', emoji:'⚡', label:'Charged', energy:7,  color:'#84cc16' },
+    { key:'beast',   emoji:'🔥', label:'Beast',   energy:9,  color:'#22c55e' },
+  ];
+
+  const MEALS = [
+    { key:'breakfast',    emoji:'🍳', label:'Breakfast',       desc:'Eggs + milk + banana',   cal:480 },
+    { key:'office_lunch', emoji:'🍛', label:'Office lunch',    desc:'Rice + dal + chicken',   cal:350 },
+    { key:'smoothie',     emoji:'🥤', label:'Smoothie',        desc:'Seeds + milk',           cal:320 },
+    { key:'dinner',       emoji:'🍚', label:'Dinner',          desc:'Egg fried rice + dal',   cal:550 },
+    { key:'evening_milk', emoji:'🥛', label:'Evening milk',    desc:'Glass of full fat milk', cal:150 },
+    { key:'snacks',       emoji:'🥜', label:'Peanuts / snack', desc:'Handful nuts or snack',  cal:160 },
+  ];
+
+  const EXERCISES = [
+    { key:'pushups', emoji:'💪', label:'Pushups',      unit:'sets',   step:1,  max:10 },
+    { key:'dips',    emoji:'🪑', label:'Dips',         unit:'sets',   step:1,  max:10 },
+    { key:'squats',  emoji:'🦵', label:'Squats',       unit:'sets',   step:1,  max:10 },
+    { key:'pike',    emoji:'🔼', label:'Pike pushups', unit:'sets',   step:1,  max:10 },
+    { key:'plank',   emoji:'⏱', label:'Plank',        unit:'sec',    step:15, max:300 },
+  ];
 
   const ACTIVITIES = [
     { key:'office',    label:'💼 Office work'    },
     { key:'dev',       label:'💻 Personal dev'    },
     { key:'movies',    label:'🎬 Movies / Shows'  },
-    { key:'foosball',  label:'🏓 Foosball'         },
-    { key:'badminton', label:'🏸 Badminton'        },
-    { key:'guitar',    label:'🎸 Guitar'           },
-    { key:'exercise',  label:'💪 Exercise'          },
-    { key:'walk',      label:'🚶 Walk / Run'       },
+    { key:'foosball',  label:'🏓 Foosball'        },
+    { key:'badminton', label:'🏸 Badminton'       },
+    { key:'guitar',    label:'🎸 Guitar'          },
+    { key:'walk',      label:'🚶 Walk / Run'      },
   ];
 
-  // Color helpers
-  // Energy: red → green (feeling scale)
-  const ENERGY_COLORS = ['','#ef4444','#f97316','#f97316','#f59e0b','#f59e0b','#84cc16','#84cc16','#22c55e','#22c55e','#16a34a'];
-  // Damage: green (clean) → purple/magenta (distinct from energy reds)
-  const DAMAGE_COLORS = { '0':'#22c55e', '1':'#a78bfa', '2':'#7c3aed', '3':'#9333ea', '4+':'#c026d3' };
-  // Meals: neutral cyan/teal scale (quantity, not good/bad)
-  const MEAL_COLORS   = { skip:'#52525b', light:'#22d3ee', medium:'#0891b2', heavy:'#164e63' };
+  const DAMAGE_COLORS = { '0':'#22c55e','1':'#a78bfa','2':'#7c3aed','3':'#9333ea','4+':'#c026d3' };
 
   function hexRgb(hex) {
-    const h = hex.replace('#','');
-    return [parseInt(h.slice(0,2),16), parseInt(h.slice(2,4),16), parseInt(h.slice(4,6),16)];
-  }
-  function eStyle(n, sel) {
-    const c = ENERGY_COLORS[n]; if(!c) return '';
-    const [r,g,b] = hexRgb(c);
-    return sel
-      ? `background:rgba(${r},${g},${b},0.2);border:1.5px solid ${c};color:${c}`
-      : `background:rgba(${r},${g},${b},0.06);border:1.5px solid rgba(${r},${g},${b},0.25);color:rgba(${r},${g},${b},0.7)`;
-  }
-  function mStyle(opt, sel) {
-    const c = MEAL_COLORS[opt] || '#52525b';
-    const [r,g,b] = hexRgb(c);
-    return sel
-      ? `background:rgba(${r},${g},${b},0.18);border:1.5px solid ${c};color:${c}`
-      : `background:var(--card);border:1.5px solid rgba(${r},${g},${b},0.25);color:rgba(${r},${g},${b},0.55)`;
+    const h=hex.replace('#','');
+    return [parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)];
   }
   function dStyle(n, sel) {
-    const c = DAMAGE_COLORS[String(n)] || '#52525b';
-    const [r,g,b] = hexRgb(c);
+    const c=DAMAGE_COLORS[String(n)]||'#52525b';
+    const [r,g,b]=hexRgb(c);
     return sel
       ? `background:rgba(${r},${g},${b},0.18);border:1.5px solid ${c};color:${c}`
       : `background:var(--card);border:1.5px solid rgba(${r},${g},${b},0.2);color:rgba(${r},${g},${b},0.55)`;
   }
 
-  // ── Utilities ──
+  // ── Utilities ──────────────────────────────────────────────────────────────
   function today() {
-    const d = new Date();
+    const d=new Date();
     return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
   }
   function dateLabel() {
     return new Date().toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'});
   }
   function to12h(t) {
-    if (!t) return '';
-    const [h,m] = t.split(':').map(Number);
-    const ap = h < 12 ? 'AM' : 'PM';
-    const h12 = h===0?12:h>12?h-12:h;
+    if(!t) return '';
+    const [h,m]=t.split(':').map(Number);
+    const ap=h<12?'AM':'PM', h12=h===0?12:h>12?h-12:h;
     return `${String(h12).padStart(2,'0')}:${String(m).padStart(2,'0')} ${ap}`;
   }
-  function calcDur(from, to) {
-    if (!from||!to) return null;
-    const [fh,fm]=from.split(':').map(Number), [th,tm]=to.split(':').map(Number);
+  function calcDur(from,to) {
+    if(!from||!to) return null;
+    const [fh,fm]=from.split(':').map(Number),[th,tm]=to.split(':').map(Number);
     let a=fh*60+fm, b=th*60+tm;
-    if (b<=a) b+=1440;
+    if(b<=a) b+=1440;
     return Math.round((b-a)/60*100)/100;
   }
   function fmtDur(h) {
-    if (!h&&h!==0) return '—';
+    if(!h&&h!==0) return '—';
     const hrs=Math.floor(h), mins=Math.round((h-hrs)*60);
     return mins?`${hrs}h ${mins}m`:`${hrs}h`;
   }
@@ -209,19 +247,25 @@
     const bin=atob(b64.replace(/\n/g,''));
     return new TextDecoder().decode(Uint8Array.from(bin,c=>c.charCodeAt(0)));
   }
+  function fmtSec(s) { return s >= 60 ? `${Math.floor(s/60)}m ${s%60?s%60+'s':''}`.trim() : `${s}s`; }
 
-  // ── State ──
+  // ── State ──────────────────────────────────────────────────────────────────
   let state = {
     tab: 'body',
-    energy: null, weight: null, damage: null,
-    food: { breakfast: null, lunch: null, dinner: null, items: [] },
-    eating_quality: null,
+    vibe: null, weight: null, damage: null,
+    meals: Object.fromEntries(MEALS.map(m=>[m.key, false])),
+    extraCal: 0, foodItems: [], eating_quality: null,
     sessions: [{ from:'', to:'' }],
+    workout: { rest: false, pushups:0, dips:0, squats:0, pike:0, plank:0 },
     activities: Object.fromEntries(ACTIVITIES.map(a=>[a.key,0])),
     notes: ''
   };
 
-  // ── GitHub API ──
+  function calcCalories() {
+    return MEALS.reduce((s,m) => s + (state.meals[m.key] ? m.cal : 0), 0) + state.extraCal;
+  }
+
+  // ── GitHub API ─────────────────────────────────────────────────────────────
   async function saveToday(patch) {
     const pat = localStorage.getItem(PAT_KEY);
     const date = today();
@@ -229,48 +273,51 @@
     const url  = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${path}`;
     const hdrs = { Authorization:`token ${pat}`, Accept:'application/vnd.github.v3+json', 'Content-Type':'application/json' };
 
-    let sha = null, existing = {};
+    let sha=null, existing={};
     const get = await fetch(url, { headers: hdrs });
-    if (get.ok) {
-      const j = await get.json();
-      sha = j.sha;
-      try { existing = JSON.parse(fromB64(j.content)); } catch {}
-    }
+    if (get.ok) { const j=await get.json(); sha=j.sha; try { existing=JSON.parse(fromB64(j.content)); } catch {} }
 
     const merged = { ...existing, date };
-    // Merge top-level fields — only overwrite if value is not null/undefined
-    Object.entries(patch).forEach(([k, v]) => {
-      if (k === 'food' || k === 'activities') return; // handled below
+
+    Object.entries(patch).forEach(([k,v]) => {
+      if (['food','activities','calories','workout'].includes(k)) return;
       if (v !== null && v !== undefined) merged[k] = v;
     });
-    // Merge food deeply — only update fields that have actual values
+
     if (patch.food) {
       const ef = existing.food || {};
       const mf = { ...ef };
-      Object.entries(patch.food).forEach(([k, v]) => {
-        if (k === 'items') {
-          // Merge items arrays (append new, keep existing)
-          if (v && v.length > 0) mf.items = [...(ef.items||[]), ...v.filter(x => !(ef.items||[]).includes(x))];
-        } else if (v !== null && v !== undefined) {
-          mf[k] = v; // only update if explicitly set
-        }
+      Object.entries(patch.food).forEach(([k,v]) => {
+        if (k==='items') { if (v?.length) mf.items=[...(ef.items||[]),...v.filter(x=>!(ef.items||[]).includes(x))]; }
+        else if (v!==null&&v!==undefined) mf[k]=v;
       });
       merged.food = mf;
     }
-    // Merge activities — only update hours > 0
+
     if (patch.activities) {
-      const acts = { ...(existing.activities||{}) };
-      Object.entries(patch.activities).forEach(([k,v]) => { if (v > 0) acts[k] = v; });
-      merged.activities = Object.keys(acts).length ? acts : null;
+      const acts={...(existing.activities||{})};
+      Object.entries(patch.activities).forEach(([k,v]) => { if(v>0) acts[k]=v; });
+      merged.activities = Object.keys(acts).length ? acts : undefined;
     }
 
-    const body = { message:`VITALS ${date}`, content: toB64(JSON.stringify(merged, null, 2)), ...(sha?{sha}:{}) };
-    const res = await fetch(url, { method:'PUT', headers: hdrs, body: JSON.stringify(body) });
+    if (patch.calories) {
+      merged.calories = patch.calories;
+    }
+
+    if (patch.workout) {
+      merged.workout = patch.workout;
+      const anyDone = !patch.workout.rest &&
+        EXERCISES.some(e => (patch.workout[e.key]||0) > 0);
+      merged.exercise = { done: anyDone, type: anyDone ? 'home' : null };
+    }
+
+    const body = { message:`VITALS ${date}`, content:toB64(JSON.stringify(merged,null,2)), ...(sha?{sha}:{}) };
+    const res = await fetch(url, { method:'PUT', headers:hdrs, body:JSON.stringify(body) });
     if (!res.ok) { const e=await res.json(); throw new Error(e.message||`Error ${res.status}`); }
     return merged;
   }
 
-  // ── Render ──
+  // ── Render shell ───────────────────────────────────────────────────────────
   function render() {
     const tab = state.tab;
     document.getElementById('app').innerHTML = `
@@ -280,109 +327,153 @@
           <div class="header-date">${dateLabel()}</div>
         </div>
         <div class="tabs">
-          <button class="tab-btn ${tab==='body'  ?'active':''}" onclick="switchTab('body')">🫀 Body</button>
-          <button class="tab-btn ${tab==='food'  ?'active':''}" onclick="switchTab('food')">🍽 Food</button>
-          <button class="tab-btn ${tab==='sleep' ?'active':''}" onclick="switchTab('sleep')">💤 Sleep</button>
-          <button class="tab-btn ${tab==='day'   ?'active':''}" onclick="switchTab('day')">🌅 Day</button>
+          <button class="tab-btn ${tab==='body' ?'active':''}" onclick="switchTab('body')">🫀 Body</button>
+          <button class="tab-btn ${tab==='food' ?'active':''}" onclick="switchTab('food')">🍽 Food</button>
+          <button class="tab-btn ${tab==='sleep'?'active':''}" onclick="switchTab('sleep')">💤 Sleep</button>
+          <button class="tab-btn ${tab==='day'  ?'active':''}" onclick="switchTab('day')">🌅 Day</button>
         </div>
         <div id="tab-body"></div>
       </div>`;
-    if (tab==='body')  renderBody();
-    if (tab==='food')  renderFood();
-    if (tab==='sleep') renderSleep();
-    if (tab==='day')   renderDay();
+    if(tab==='body')  renderBody();
+    if(tab==='food')  renderFood();
+    if(tab==='sleep') renderSleep();
+    if(tab==='day')   renderDay();
   }
+  function switchTab(t) { state.tab=t; render(); }
 
-  function switchTab(t) { state.tab = t; render(); }
-
-  // ── BODY TAB ──
+  // ── BODY TAB ──────────────────────────────────────────────────────────────
   function renderBody() {
     document.getElementById('tab-body').innerHTML = `
       <div class="section">
-        <div class="section-label">Energy right now</div>
-        <div class="energy-row">
-          ${[1,2,3,4,5,6,7,8,9,10].map(n=>`
-            <button class="e-btn" id="e${n}" onclick="selEnergy(${n})"
-              style="${eStyle(n, state.energy===n)}">${n}</button>`).join('')}
+        <div class="section-label">How's the vibe today?</div>
+        <div class="vibe-row">
+          ${VIBES.map(v => {
+            const sel = state.vibe === v.key;
+            return `<button class="vibe-btn" onclick="selVibe('${v.key}')"
+              style="${sel ? `border-color:${v.color};background:rgba(${hexRgb(v.color).join(',')},0.12)` : ''}">
+              <span class="vibe-emoji">${v.emoji}</span>
+              <span class="vibe-label" style="${sel?`color:${v.color}`:''}">${v.label}</span>
+            </button>`;
+          }).join('')}
         </div>
       </div>
+
       <div class="section">
-        <div class="section-label">Weight (optional)</div>
-        <input class="num-input" type="number" id="weight" placeholder="e.g. 53.1" step="0.1" inputmode="decimal" value="${state.weight||''}">
+        <div class="section-label">Weight — morning after toilet (optional)</div>
+        <input class="num-input" type="number" id="weight" placeholder="e.g. 53.2" step="0.1" inputmode="decimal" value="${state.weight||''}">
       </div>
+
       <div class="section">
         <div class="section-label">Damage</div>
         <div class="chips">
           ${[0,1,2,3,'4+'].map(n=>`
             <span class="chip" id="dmg-${n}" onclick="selDamage('${n}')"
-              style="${dStyle(n, String(state.damage)===String(n))}; padding:9px 16px">${n}</span>`).join('')}
+              style="${dStyle(n,String(state.damage)===String(n))};padding:10px 18px">${n}</span>`).join('')}
         </div>
       </div>
       <div class="err" id="body-err"></div>
       <button class="save-btn" onclick="saveBody()">Save Body ⚡</button>`;
   }
 
-  function selEnergy(n) {
-    state.energy = n;
-    [1,2,3,4,5,6,7,8,9,10].forEach(i => {
-      const el = document.getElementById(`e${i}`);
-      if (el) el.setAttribute('style', eStyle(i, i===n));
+  function selVibe(key) {
+    state.vibe = key;
+    document.querySelectorAll('.vibe-btn').forEach((btn, i) => {
+      const v = VIBES[i];
+      const sel = v.key === key;
+      btn.style = sel ? `border-color:${v.color};background:rgba(${hexRgb(v.color).join(',')},0.12)` : '';
+      btn.querySelector('.vibe-label').style = sel ? `color:${v.color}` : '';
+    });
+  }
+
+  function selDamage(n) {
+    state.damage=n;
+    [0,1,2,3,'4+'].forEach(v=>{
+      const el=document.getElementById(`dmg-${v}`);
+      if(el) el.setAttribute('style',dStyle(v,String(v)===String(n))+';padding:10px 18px');
     });
   }
 
   async function saveBody() {
-    const btn = document.querySelector('.save-btn');
-    const err = document.getElementById('body-err');
-    const w = parseFloat(document.getElementById('weight').value) || null;
-    if (!state.energy) { err.textContent = 'Select energy level'; return; }
-    state.weight = w;
-    btn.textContent = 'Saving…'; btn.disabled = true;
+    const btn=document.querySelector('.save-btn'), err=document.getElementById('body-err');
+    const w=parseFloat(document.getElementById('weight').value)||null;
+    if(!state.vibe) { err.textContent='Tap your vibe to continue'; return; }
+    state.weight=w;
+    const vibe=VIBES.find(v=>v.key===state.vibe);
+    btn.textContent='Saving…'; btn.disabled=true;
     try {
-      await saveToday({ energy: state.energy, weight: w, damage: state.damage });
-      showSuccess('Body saved', [
-        { label:'⚡', val:`${state.energy}/10` },
-        ...(w?[{label:'⚖️', val:`${w}kg`}]:[]),
-        ...(state.damage!=null?[{label:'📊', val:`damage: ${state.damage}`}]:[])
+      await saveToday({ vibe:state.vibe, energy:vibe.energy, weight:w, damage:state.damage });
+      showSuccess('Body saved!',[
+        { label:vibe.emoji, val:`${vibe.label} (${vibe.energy}/10)` },
+        ...(w?[{label:'⚖️',val:`${w} kg`}]:[]),
+        ...(state.damage!=null?[{label:'📊',val:`Damage: ${state.damage}`}]:[])
       ]);
     } catch(e) { btn.textContent='Save Body ⚡'; btn.disabled=false; err.textContent=e.message; }
   }
 
-  // ── FOOD TAB ──
+  // ── FOOD TAB ──────────────────────────────────────────────────────────────
   function renderFood() {
-    const f = state.food;
+    const total = calcCalories();
+    const pct = Math.min((total/CAL_TARGET)*100, 100);
+    const barColor = total>=CAL_TARGET ? '#22c55e' : total>=2200 ? '#f59e0b' : '#6366f1';
+    const gap = CAL_TARGET - total;
+
     document.getElementById('tab-body').innerHTML = `
+      <div class="cal-bar-wrap">
+        <div class="cal-bar-header">
+          <span class="cal-total">${total} <span style="font-size:14px;color:var(--dim);font-weight:400">cal</span></span>
+          <span class="cal-goal-label">Goal: ${CAL_TARGET} cal/day</span>
+        </div>
+        <div class="cal-track"><div class="cal-fill" style="width:${pct}%;background:${barColor}"></div></div>
+        <div class="cal-note">${total>=CAL_TARGET ? '✓ Goal reached! Great work 💪' : `${gap} cal short of goal`}</div>
+      </div>
+
       <div class="section">
-        <div class="section-label">Meals</div>
-        <div style="background:var(--card);border:1.5px solid var(--border);border-radius:10px;padding:4px 12px">
-          ${['breakfast','lunch','dinner'].map(meal=>`
-            <div class="meal-row">
-              <span class="meal-name">${meal[0].toUpperCase()+meal.slice(1)}</span>
-              <div class="meal-opts">
-                ${['skip','light','medium','heavy'].map(opt=>`
-                  <button class="meal-opt" onclick="selMeal('${meal}','${opt}')"
-                    style="${mStyle(opt, f[meal]===opt)}">
-                    ${opt==='skip'?'—':opt[0].toUpperCase()+opt.slice(1)}
-                  </button>`).join('')}
+        <div class="section-label">Today's meals — tap to check</div>
+        <div style="background:var(--card);border:1.5px solid var(--border);border-radius:12px;overflow:hidden">
+          ${MEALS.map(m => {
+            const checked = state.meals[m.key];
+            return `<div class="meal-item" onclick="toggleMeal('${m.key}')">
+              <div class="meal-check" style="${checked?'background:#22c55e;border-color:#22c55e;color:#fff':''}">
+                ${checked?'✓':''}
               </div>
-            </div>`).join('')}
+              <div class="meal-info">
+                <div class="meal-name">${m.emoji} ${m.label}</div>
+                <div class="meal-desc">${m.desc}</div>
+              </div>
+              <div class="meal-cal" style="${checked?'color:#22c55e':''}">+${m.cal}</div>
+            </div>`;
+          }).join('')}
         </div>
       </div>
 
       <div class="section">
-        <div class="section-label">What did you have?</div>
+        <div class="section-label">Extra food today</div>
+        <div class="activity-row" style="border:none;padding:0">
+          <span class="activity-label" style="font-size:13px;color:var(--sub)">Additional calories</span>
+          <div class="stepper">
+            <button class="s-btn" onclick="decExtra()">−</button>
+            <span class="s-val" id="extra-val">${state.extraCal>0?'+'+state.extraCal+' cal':'—'}</span>
+            <button class="s-btn" onclick="incExtra()">+</button>
+          </div>
+        </div>
+        <div style="font-size:10px;color:var(--dim);margin-top:6px">Each tap = +100 cal. Use for extra portions, outside food, etc.</div>
+      </div>
+
+      <div class="section">
+        <div class="section-label">Anything else you had?</div>
         <div class="custom-row">
-          <input class="custom-input" id="food-input" placeholder="e.g. Biryani, cold coffee, fruits…"
+          <input class="custom-input" id="food-input" placeholder="e.g. Biryani, cold coffee, protein shake…"
             onkeydown="if(event.key==='Enter'){addFoodItem();event.preventDefault()}">
           <button class="add-btn" onclick="addFoodItem()">Add</button>
         </div>
-        ${f.items.length ? `
+        ${state.foodItems.length?`
         <div class="custom-tags" style="margin-top:10px">
-          ${f.items.map((c,i)=>`<span class="custom-tag" onclick="removeFoodItem(${i})">${c} ×</span>`).join('')}
-        </div>` : ''}
+          ${state.foodItems.map((c,i)=>`<span class="custom-tag" onclick="removeFoodItem(${i})">${c} ×</span>`).join('')}
+        </div>`:''}
       </div>
 
       <div class="section">
-        <div class="section-label">Overall eating today</div>
+        <div class="section-label">Overall eating quality</div>
         <div class="chips">
           <span class="chip ${state.eating_quality==='good'?'on-green':''}"  onclick="selEating('good')">😊 Good</span>
           <span class="chip ${state.eating_quality==='okay'?'on-amber':''}" onclick="selEating('okay')">😐 Okay</span>
@@ -394,36 +485,49 @@
       <button class="save-btn" onclick="saveFood()">Save Food 🍽</button>`;
   }
 
-  function selMeal(meal, opt) { state.food[meal] = opt; renderFood(); }
-  function selEating(val) { state.eating_quality = val; renderFood(); }
-  function addFoodItem() {
-    const el = document.getElementById('food-input');
-    const v = el?.value.trim();
-    if (v) { state.food.items.push(v); el.value=''; renderFood(); }
+  function toggleMeal(key) {
+    state.meals[key] = !state.meals[key];
+    renderFood();
   }
-  function removeFoodItem(i) { state.food.items.splice(i,1); renderFood(); }
+  function incExtra() { state.extraCal=Math.min(state.extraCal+100,2000); renderFood(); }
+  function decExtra() { state.extraCal=Math.max(state.extraCal-100,0);    renderFood(); }
+  function selEating(val) { state.eating_quality=val; renderFood(); }
+  function addFoodItem() {
+    const el=document.getElementById('food-input'), v=el?.value.trim();
+    if(v) { state.foodItems.push(v); el.value=''; renderFood(); }
+  }
+  function removeFoodItem(i) { state.foodItems.splice(i,1); renderFood(); }
 
   async function saveFood() {
-    const btn = document.querySelector('.save-btn');
-    const err = document.getElementById('food-err');
-    btn.textContent = 'Saving…'; btn.disabled = true;
+    const btn=document.querySelector('.save-btn'), err=document.getElementById('food-err');
+    btn.textContent='Saving…'; btn.disabled=true;
+    const total = calcCalories();
+    const mealsCal = Object.fromEntries(MEALS.map(m=>[m.key, state.meals[m.key]?m.cal:0]));
     try {
-      await saveToday({ food: state.food, eating_quality: state.eating_quality });
-      const chips = [];
-      if (state.food.items.length) chips.push({label:'🍽', val:state.food.items.slice(0,2).join(', ')});
-      if (state.food.lunch) chips.push({label:'🍛', val:'Lunch: '+state.food.lunch});
-      if (state.eating_quality) chips.push({label:'😊', val:state.eating_quality});
-      showSuccess('Food saved', chips);
+      await saveToday({
+        calories: { meals: mealsCal, extra: state.extraCal, total },
+        food: { items: state.foodItems },
+        eating_quality: state.eating_quality
+      });
+      showSuccess('Food saved!',[
+        { label:'🔥', val:`${total} / ${CAL_TARGET} cal` },
+        ...(state.eating_quality?[{label:'😊',val:state.eating_quality}]:[]),
+        ...(state.foodItems.length?[{label:'🍽',val:state.foodItems.slice(0,2).join(', ')}]:[])
+      ]);
     } catch(e) { btn.textContent='Save Food 🍽'; btn.disabled=false; err.textContent=e.message; }
   }
 
-  // ── SLEEP TAB ──
+  // ── SLEEP TAB ─────────────────────────────────────────────────────────────
   function renderSleep() {
-    if (!state.sessions.length) state.sessions = [{from:'',to:''}];
+    if(!state.sessions.length) state.sessions=[{from:'',to:''}];
     const total = state.sessions.reduce((s,x)=>s+(calcDur(x.from,x.to)||0),0);
+    const cycles = total>0 ? (total/1.5).toFixed(1) : 0;
+    const cyclePct = Math.min((cycles/4)*100,100);
+    const cycleColor = cycles>=4?'#22c55e':cycles>=3?'#f59e0b':'#6366f1';
+
     document.getElementById('tab-body').innerHTML = `
       <div class="section">
-        <div class="section-label">Sleep sessions today</div>
+        <div class="section-label">Sleep sessions</div>
         ${state.sessions.map((s,i)=>`
           <div class="sleep-session">
             <div class="session-header">
@@ -433,23 +537,27 @@
             <div class="time-row">
               <div class="time-field" style="flex:1">
                 <label>Fell asleep</label>
-                <input type="time" class="time-input" value="${s.from}"
-                  onchange="updSession(${i},'from',this.value)">
+                <input type="time" class="time-input" value="${s.from}" onchange="updSession(${i},'from',this.value)">
               </div>
               <div class="time-field" style="flex:1">
                 <label>Woke up</label>
-                <input type="time" class="time-input" value="${s.to}"
-                  onchange="updSession(${i},'to',this.value)">
+                <input type="time" class="time-input" value="${s.to}" onchange="updSession(${i},'to',this.value)">
               </div>
             </div>
             <div class="dur-label" id="dur-${i}" style="${s.from&&s.to?'':'display:none'}">
               Duration: <span>${fmtDur(calcDur(s.from,s.to))}</span>
             </div>
           </div>`).join('')}
-        <button class="add-session-btn" onclick="addSession()">+ Add another session</button>
-        <div class="total-sleep" id="sleep-total" style="${total>0?'':'display:none'}">
-          Total sleep today: <span>${fmtDur(total)}</span>
-        </div>
+        <button class="add-session-btn" onclick="addSession()">+ Add nap / another session</button>
+
+        ${total>0?`
+        <div class="sleep-summary">
+          <div class="sleep-summary-main">${fmtDur(total)} · ${cycles} cycles</div>
+          <div class="sleep-summary-sub">Goal: 4+ cycles (6h) · ${cycles>=4?'✓ Target reached!':cycles>=3?'Almost there, one more cycle':cycles>=2?'Below target, try to rest more':'Very low — aim for at least 3 cycles'}</div>
+          <div class="cycles-bar-wrap">
+            <div class="cycles-track"><div class="cycles-fill" style="width:${cyclePct}%;background:${cycleColor}"></div></div>
+          </div>
+        </div>`:''}
       </div>
       <div class="err" id="sleep-err"></div>
       <button class="save-btn" onclick="saveSleep()">Save Sleep 💤</button>`;
@@ -457,41 +565,70 @@
 
   function addSession() { state.sessions.push({from:'',to:''}); renderSleep(); }
   function removeSession(i) { state.sessions.splice(i,1); renderSleep(); }
-  function updSession(i, field, val) {
-    state.sessions[i][field] = val;
-    // Update only duration + total — no full re-render (keeps time picker working)
-    const s = state.sessions[i];
-    const dur = calcDur(s.from, s.to);
-    const durEl = document.getElementById(`dur-${i}`);
-    if (durEl) { durEl.style.display = dur ? '' : 'none'; durEl.innerHTML = `Duration: <span>${fmtDur(dur)}</span>`; }
-    const total = state.sessions.reduce((a,x)=>a+(calcDur(x.from,x.to)||0), 0);
-    const totEl = document.getElementById('sleep-total');
-    if (totEl) { totEl.style.display = total>0 ? '' : 'none'; totEl.innerHTML = `Total sleep today: <span>${fmtDur(total)}</span>`; }
+  function updSession(i,field,val) {
+    state.sessions[i][field]=val;
+    const s=state.sessions[i], dur=calcDur(s.from,s.to);
+    const durEl=document.getElementById(`dur-${i}`);
+    if(durEl){ durEl.style.display=dur?'':'none'; durEl.innerHTML=`Duration: <span>${fmtDur(dur)}</span>`; }
+    const total=state.sessions.reduce((a,x)=>a+(calcDur(x.from,x.to)||0),0);
+    const cycles=(total/1.5).toFixed(1);
+    const cyclePct=Math.min((cycles/4)*100,100);
+    const cycleColor=cycles>=4?'#22c55e':cycles>=3?'#f59e0b':'#6366f1';
+    const sumEl=document.querySelector('.sleep-summary');
+    if(sumEl&&total>0){
+      sumEl.querySelector('.sleep-summary-main').textContent=`${fmtDur(total)} · ${cycles} cycles`;
+      sumEl.querySelector('.cycles-fill').style=`width:${cyclePct}%;background:${cycleColor}`;
+    }
   }
 
   async function saveSleep() {
-    const btn = document.querySelector('.save-btn');
-    const err = document.getElementById('sleep-err');
-    const sessions = state.sessions.filter(s=>s.from&&s.to);
-    if (!sessions.length) { err.textContent='Add at least one complete session'; return; }
-    const built = sessions.map(s=>({from:to12h(s.from),to:to12h(s.to),duration:calcDur(s.from,s.to)}));
-    const total  = Math.round(built.reduce((a,s)=>a+s.duration,0)*100)/100;
+    const btn=document.querySelector('.save-btn'), err=document.getElementById('sleep-err');
+    const sessions=state.sessions.filter(s=>s.from&&s.to);
+    if(!sessions.length){err.textContent='Add at least one complete session';return;}
+    const built=sessions.map(s=>({from:to12h(s.from),to:to12h(s.to),duration:calcDur(s.from,s.to)}));
+    const total=Math.round(built.reduce((a,s)=>a+s.duration,0)*100)/100;
+    const cycles=parseFloat((total/1.5).toFixed(1));
     btn.textContent='Saving…'; btn.disabled=true;
     try {
-      await saveToday({ sleep:{ sessions:built, total } });
-      showSuccess('Sleep saved',[
-        {label:'💤', val:`${built.length} session${built.length>1?'s':''}`},
-        {label:'⏱', val:fmtDur(total)}
+      await saveToday({ sleep:{ sessions:built, total, cycles } });
+      showSuccess('Sleep saved!',[
+        {label:'💤', val:fmtDur(total)},
+        {label:'🔄', val:`${cycles} cycles`},
+        ...(built.length>1?[{label:'🛏',val:`${built.length} sessions`}]:[])
       ]);
-    } catch(e) { btn.textContent='Save Sleep 💤'; btn.disabled=false; err.textContent=e.message; }
+    } catch(e){btn.textContent='Save Sleep 💤';btn.disabled=false;err.textContent=e.message;}
   }
 
-  // ── DAY TAB ──
+  // ── DAY TAB ───────────────────────────────────────────────────────────────
   function renderDay() {
+    const w = state.workout;
     document.getElementById('tab-body').innerHTML = `
       <div class="section">
+        <div class="section-label">Today's workout</div>
+        <div class="rest-toggle" onclick="toggleRest()">
+          <span class="rest-label">Rest day — skipping workout</span>
+          <div class="rest-switch ${w.rest?'on':''}"><div class="rest-knob"></div></div>
+        </div>
+        ${!w.rest?`
+        <div style="background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:4px 14px">
+          ${EXERCISES.map(e=>`
+            <div class="activity-row">
+              <span class="activity-label">${e.emoji} ${e.label}</span>
+              <div class="stepper">
+                <button class="s-btn" onclick="decEx('${e.key}',${e.step})">−</button>
+                <span class="s-val" id="ex-${e.key}">${w[e.key]>0?(e.unit==='sec'?fmtSec(w[e.key]):`${w[e.key]} sets`):'—'}</span>
+                <button class="s-btn" onclick="incEx('${e.key}',${e.step},${e.max})">+</button>
+              </div>
+            </div>`).join('')}
+        </div>`:`
+        <div style="background:rgba(99,102,241,0.06);border:1.5px solid rgba(99,102,241,0.15);border-radius:12px;padding:14px;text-align:center;font-size:13px;color:var(--dim)">
+          Rest days are important for muscle recovery 💪
+        </div>`}
+      </div>
+
+      <div class="section">
         <div class="section-label">Activities — hours today</div>
-        <div style="background:var(--card);border:1.5px solid var(--border);border-radius:10px;padding:4px 14px">
+        <div style="background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:4px 14px">
           ${ACTIVITIES.map(a=>`
             <div class="activity-row">
               <span class="activity-label">${a.label}</span>
@@ -506,50 +643,47 @@
 
       <div class="section">
         <div class="section-label">Notes (optional)</div>
-        <textarea class="txt-input" id="notes" placeholder="Anything notable…">${state.notes||''}</textarea>
+        <textarea class="txt-input" id="notes" placeholder="Anything notable today…">${state.notes||''}</textarea>
       </div>
 
       <div class="err" id="day-err"></div>
       <button class="save-btn" onclick="saveDay()">Save Day 🌅</button>`;
   }
 
+  function toggleRest() { state.workout.rest=!state.workout.rest; renderDay(); }
+  function incEx(k,step,max) { state.workout[k]=Math.min((state.workout[k]||0)+step,max); const el=document.getElementById(`ex-${k}`); if(el){ const e=EXERCISES.find(x=>x.key===k); el.textContent=state.workout[k]>0?(e.unit==='sec'?fmtSec(state.workout[k]):`${state.workout[k]} sets`):'—'; } }
+  function decEx(k,step)     { state.workout[k]=Math.max((state.workout[k]||0)-step,0);    const el=document.getElementById(`ex-${k}`); if(el){ const e=EXERCISES.find(x=>x.key===k); el.textContent=state.workout[k]>0?(e.unit==='sec'?fmtSec(state.workout[k]):`${state.workout[k]} sets`):'—'; } }
   function incAct(k) { state.activities[k]=Math.min((state.activities[k]||0)+0.5,16); const el=document.getElementById(`act-${k}`); if(el) el.textContent=state.activities[k]>0?fmtDur(state.activities[k]):'—'; }
   function decAct(k) { state.activities[k]=Math.max((state.activities[k]||0)-0.5,0);  const el=document.getElementById(`act-${k}`); if(el) el.textContent=state.activities[k]>0?fmtDur(state.activities[k]):'—'; }
-  function selDamage(n) {
-    state.damage = n;
-    [0,1,2,3,'4+'].forEach(v => {
-      const el = document.getElementById(`dmg-${v}`);
-      if (el) el.setAttribute('style', dStyle(v, String(v)===String(n)) + ';padding:9px 16px');
-    });
-  }
 
   async function saveDay() {
-    const btn = document.querySelector('.save-btn');
-    const err = document.getElementById('day-err');
-    const notes = document.getElementById('notes').value.trim();
-    state.notes = notes;
-    const acts = Object.fromEntries(Object.entries(state.activities).filter(([,v])=>v>0));
+    const btn=document.querySelector('.save-btn'), err=document.getElementById('day-err');
+    const notes=document.getElementById('notes').value.trim();
+    state.notes=notes;
+    const acts=Object.fromEntries(Object.entries(state.activities).filter(([,v])=>v>0));
     btn.textContent='Saving…'; btn.disabled=true;
     try {
-      await saveToday({ activities: acts, damage: state.damage, ...(notes?{notes}:{}) });
+      await saveToday({ workout:state.workout, activities:acts, ...(notes?{notes}:{}) });
       const chips=[];
+      if(state.workout.rest) chips.push({label:'😴',val:'Rest day'});
+      else {
+        const done=EXERCISES.filter(e=>state.workout[e.key]>0);
+        if(done.length) chips.push({label:'💪',val:done.map(e=>e.label.split(' ')[1]||e.label).join(', ')});
+      }
       const topAct=Object.entries(acts).sort((a,b)=>b[1]-a[1])[0];
-      if (topAct) chips.push({label:'🏆', val:`${topAct[0]}: ${fmtDur(topAct[1])}`});
-      if (state.damage!=null) chips.push({label:'📊', val:`damage: ${state.damage}`});
-      showSuccess('Day saved', chips);
-    } catch(e) { btn.textContent='Save Day 🌅'; btn.disabled=false; err.textContent=e.message; }
+      if(topAct) chips.push({label:'⏱',val:`${topAct[0]}: ${fmtDur(topAct[1])}`});
+      showSuccess('Day saved!',chips.length?chips:[{label:'✓',val:'Logged'}]);
+    } catch(e){btn.textContent='Save Day 🌅';btn.disabled=false;err.textContent=e.message;}
   }
 
-  // ── Success ──
+  // ── Success ────────────────────────────────────────────────────────────────
   function showSuccess(title, chips) {
     document.getElementById('app').innerHTML = `
       <div class="screen">
         <div class="success">
           <div class="success-icon">✅</div>
-          <div class="success-title">${title}!</div>
-          <div class="success-chips">
-            ${chips.map(c=>`<span class="s-chip">${c.label} <b>${c.val}</b></span>`).join('')}
-          </div>
+          <div class="success-title">${title}</div>
+          <div class="success-chips">${chips.map(c=>`<span class="s-chip">${c.label} <b>${c.val}</b></span>`).join('')}</div>
           <div class="success-actions">
             <a class="act-btn pri" href="${DASH}">View Life Dashboard</a>
             <button class="act-btn sec" onclick="render()">Log More</button>
@@ -558,7 +692,7 @@
       </div>`;
   }
 
-  // ── Setup ──
+  // ── Setup ──────────────────────────────────────────────────────────────────
   function renderSetup() {
     document.getElementById('app').innerHTML = `
       <div class="screen">
@@ -576,14 +710,12 @@
   }
 
   function saveSetup() {
-    const v = document.getElementById('pat-field').value.trim();
-    if (!v.startsWith('ghp_')&&!v.startsWith('github_pat_')) { document.getElementById('setup-err').textContent='Should start with ghp_ or github_pat_'; return; }
-    localStorage.setItem(PAT_KEY, v);
-    render();
+    const v=document.getElementById('pat-field').value.trim();
+    if(!v.startsWith('ghp_')&&!v.startsWith('github_pat_')){document.getElementById('setup-err').textContent='Should start with ghp_ or github_pat_';return;}
+    localStorage.setItem(PAT_KEY,v); render();
   }
 
-  // ── Init ──
-  if (!localStorage.getItem(PAT_KEY)) renderSetup(); else render();
+  if(!localStorage.getItem(PAT_KEY)) renderSetup(); else render();
 </script>
 </body>
 </html>
