@@ -166,6 +166,25 @@
     .skeleton { background: #1d1d20; border-radius: 6px; animation: pulse 1.8s ease-in-out infinite; }
     @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
 
+    /* Goals */
+    .goals-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    @media (max-width: 480px) { .goals-grid { grid-template-columns: 1fr; } }
+    .goal-card { background: #111113; border: 1px solid #1d1d20; border-radius: 10px; padding: 14px 16px; }
+    .goal-card.full { grid-column: 1/-1; }
+    .goal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .goal-name { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #3f3f46; font-weight: 600; }
+    .goal-status { font-size: 10px; padding: 2px 7px; border-radius: 4px; font-weight: 600; }
+    .goal-status.ok   { background: rgba(34,197,94,0.1);  color: #22c55e; }
+    .goal-status.low  { background: rgba(245,158,11,0.1); color: #f59e0b; }
+    .goal-status.off  { background: rgba(239,68,68,0.1);  color: #ef4444; }
+    .goal-value { font-size: 22px; font-weight: 700; color: #fff; line-height: 1; margin-bottom: 4px; }
+    .goal-sub   { font-size: 11px; color: #52525b; margin-bottom: 8px; }
+    .goal-bar   { height: 5px; background: #1d1d20; border-radius: 3px; overflow: hidden; }
+    .goal-fill  { height: 100%; border-radius: 3px; transition: width 0.4s; }
+    .weight-bar { position: relative; height: 8px; background: #1d1d20; border-radius: 4px; overflow: visible; margin: 10px 0 4px; }
+    .weight-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, #6366f1, #22c55e); }
+    .weight-dot  { position: absolute; top: 50%; transform: translate(-50%,-50%); width: 14px; height: 14px; background: #fff; border: 2px solid #6366f1; border-radius: 50%; }
+
     .empty-state { text-align: center; color: #3f3f46; padding: 48px 20px; font-size: 13px; line-height: 1.8; }
     .empty-state .big { font-size: 32px; margin-bottom: 10px; }
 
@@ -223,6 +242,11 @@
       <div class="skeleton" style="height:64px;border-radius:10px"></div>
       <div class="skeleton" style="height:64px;border-radius:10px"></div>
     </div>
+  </div>
+
+  <div class="section" id="goals-section">
+    <div class="section-title">Goals</div>
+    <div class="skeleton" style="height:240px;border-radius:10px"></div>
   </div>
 
   <div class="section">
@@ -661,6 +685,111 @@
     });
   }
 
+  function renderGoals(logs, insights) {
+    const el = document.getElementById('goals-section');
+    if (!el) return;
+
+    // Weight progress
+    const weightLogs = logs.filter(d => d.weight).sort((a,b) => a.date.localeCompare(b.date));
+    const startW = 53, targetW = 60;
+    const currentW = weightLogs.length ? weightLogs[weightLogs.length-1].weight : null;
+    const weightPct = currentW ? Math.min(((currentW - startW) / (targetW - startW)) * 100, 100) : 0;
+    const dotPct = Math.max(0, Math.min(weightPct, 100));
+
+    // Calories (last 7 days)
+    const last7 = logs.slice(-7);
+    const calLogs = last7.filter(d => d.calories?.total > 0);
+    const avgCal = calLogs.length ? Math.round(calLogs.reduce((s,d) => s + d.calories.total, 0) / calLogs.length) : 0;
+    const calHitRate = last7.length ? Math.round((last7.filter(d => (d.calories?.total||0) >= 2200).length / last7.length) * 100) : 0;
+    const calPct = Math.min((avgCal / 2800) * 100, 100);
+
+    // Sleep cycles (last 7 days)
+    const sleepLogs = last7.filter(d => d.sleep?.total > 0);
+    const avgCycles = sleepLogs.length ? parseFloat((sleepLogs.reduce((s,d) => s + (d.sleep.cycles || d.sleep.total/1.5), 0) / sleepLogs.length).toFixed(1)) : 0;
+    const cyclesPct = Math.min((avgCycles / 4) * 100, 100);
+
+    // Damage (last 7 days)
+    const dmgTotal = last7.reduce((s,d) => {
+      const v = d.damage; if (v == null) return s;
+      return s + (v === '4+' ? 4 : Number(v) || 0);
+    }, 0);
+
+    // Exercise days (last 7)
+    const exDays = last7.filter(d => d.exercise?.done || (d.workout && !d.workout.rest && Object.entries(d.workout).some(([k,v]) => k !== 'rest' && v > 0))).length;
+
+    // Weight projection from insights
+    const projection = insights?.weight_projection || null;
+
+    const calStatus = avgCal >= 2500 ? 'ok' : avgCal >= 2000 ? 'low' : 'off';
+    const cyclesStatus = avgCycles >= 4 ? 'ok' : avgCycles >= 3 ? 'low' : 'off';
+    const dmgStatus = dmgTotal <= 4 ? 'ok' : dmgTotal <= 7 ? 'low' : 'off';
+    const exStatus = exDays >= 4 ? 'ok' : exDays >= 2 ? 'low' : 'off';
+
+    el.innerHTML = `
+      <div class="section-title">Goals — 60 kg Hero Body 💪</div>
+      <div class="goals-grid">
+
+        <div class="goal-card full">
+          <div class="goal-header">
+            <span class="goal-name">Weight Goal</span>
+            <span class="goal-status ${currentW >= 57 ? 'ok' : currentW >= 54 ? 'low' : 'off'}">${currentW ? currentW + ' kg' : 'No data'}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:#52525b;margin-bottom:4px">
+            <span>Start: ${startW} kg</span><span>Target: ${targetW} kg</span>
+          </div>
+          <div class="weight-bar">
+            <div class="weight-fill" style="width:${Math.max(weightPct,2)}%"></div>
+            ${currentW ? `<div class="weight-dot" style="left:${dotPct}%"></div>` : ''}
+          </div>
+          <div style="font-size:11px;color:#52525b;margin-top:6px">
+            ${currentW ? `${(currentW - startW).toFixed(1)} kg gained · ${(targetW - currentW).toFixed(1)} kg to go` : 'Log your morning weight daily to track progress'}
+            ${projection ? ` · <span style="color:#a1a1aa">${projection}</span>` : ''}
+          </div>
+        </div>
+
+        <div class="goal-card">
+          <div class="goal-header">
+            <span class="goal-name">Calories</span>
+            <span class="goal-status ${calStatus}">${calStatus === 'ok' ? 'On track' : calStatus === 'low' ? 'Low' : 'Critical'}</span>
+          </div>
+          <div class="goal-value">${avgCal > 0 ? avgCal : '—'}</div>
+          <div class="goal-sub">avg cal/day · goal 2800 · ${calHitRate}% days hit 2200+</div>
+          <div class="goal-bar"><div class="goal-fill" style="width:${calPct}%;background:${avgCal>=2500?'#22c55e':avgCal>=2000?'#f59e0b':'#ef4444'}"></div></div>
+        </div>
+
+        <div class="goal-card">
+          <div class="goal-header">
+            <span class="goal-name">Sleep Cycles</span>
+            <span class="goal-status ${cyclesStatus}">${cyclesStatus === 'ok' ? 'On track' : 'Low'}</span>
+          </div>
+          <div class="goal-value">${avgCycles > 0 ? avgCycles : '—'}</div>
+          <div class="goal-sub">avg cycles/night · goal 4+ (6h)</div>
+          <div class="goal-bar"><div class="goal-fill" style="width:${cyclesPct}%;background:${avgCycles>=4?'#22c55e':avgCycles>=3?'#f59e0b':'#6366f1'}"></div></div>
+        </div>
+
+        <div class="goal-card">
+          <div class="goal-header">
+            <span class="goal-name">Exercise</span>
+            <span class="goal-status ${exStatus}">${exDays}/4 days</span>
+          </div>
+          <div class="goal-value">${exDays}</div>
+          <div class="goal-sub">workout days this week · goal 4</div>
+          <div class="goal-bar"><div class="goal-fill" style="width:${Math.min(exDays/4*100,100)}%;background:${exDays>=4?'#22c55e':exDays>=2?'#f59e0b':'#ef4444'}"></div></div>
+        </div>
+
+        <div class="goal-card">
+          <div class="goal-header">
+            <span class="goal-name">Damage control</span>
+            <span class="goal-status ${dmgStatus}">${dmgStatus === 'ok' ? 'On track' : dmgStatus === 'low' ? 'Watch out' : 'Over limit'}</span>
+          </div>
+          <div class="goal-value">${dmgTotal}</div>
+          <div class="goal-sub">this week · goal ≤4/week</div>
+          <div class="goal-bar"><div class="goal-fill" style="width:${Math.min(dmgTotal/4*100,100)}%;background:${dmgTotal<=4?'#22c55e':dmgTotal<=7?'#f59e0b':'#ef4444'}"></div></div>
+        </div>
+
+      </div>`;
+  }
+
   function renderInsights(data) {
     const el = document.getElementById('insights-section');
     if (!data || data.empty) {
@@ -717,7 +846,7 @@
       document.getElementById('last-synced').textContent =
         'Synced ' + new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
 
-      fetchInsights().then(renderInsights).catch(() => renderInsights(null));
+      fetchInsights().then(data => { renderInsights(data); renderGoals(allLogs, data); }).catch(() => { renderInsights(null); renderGoals(allLogs, null); });
     } catch (err) {
       document.getElementById('app').innerHTML = `
         <div class="empty-state">
