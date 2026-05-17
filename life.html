@@ -32,8 +32,17 @@
       border-radius: 8px; color: #a1a1aa; font-size: 12px; cursor: pointer;
       display: flex; align-items: center; gap: 6px; transition: all 0.15s; white-space: nowrap;
     }
-    .analyse-btn:hover { border-color: #6366f1; color: #6366f1; }
+    .analyse-btn:hover:not(:disabled) { border-color: #6366f1; color: #6366f1; }
+    .analyse-btn:disabled { opacity: 0.45; cursor: not-allowed; }
     .analyse-btn.loading { opacity: 0.6; cursor: not-allowed; }
+    .quota-badge {
+      font-size: 10px; padding: 2px 7px; border-radius: 4px;
+      background: #18181b; border: 1px solid #27272a; color: #52525b;
+      white-space: nowrap; cursor: default;
+    }
+    .quota-badge.ok   { color: #22c55e; border-color: rgba(34,197,94,0.3); }
+    .quota-badge.low  { color: #f59e0b; border-color: rgba(245,158,11,0.3); }
+    .quota-badge.zero { color: #ef4444; border-color: rgba(239,68,68,0.3); }
     .analyse-toast {
       max-width: 1120px; margin: 0 auto 12px;
       padding: 10px 14px; border-radius: 8px; font-size: 12px; display: none;
@@ -161,7 +170,10 @@
       <p id="last-synced">Loading…</p>
     </div>
   </div>
-  <button class="analyse-btn" id="analyse-btn" onclick="triggerAnalysis()">✦ Analyse Now</button>
+  <div style="display:flex;align-items:center;gap:8px">
+    <span class="quota-badge" id="quota-badge"></span>
+    <button class="analyse-btn" id="analyse-btn" onclick="triggerAnalysis()">✦ Analyse Now</button>
+  </div>
 </div>
 <div class="analyse-toast" id="analyse-toast"></div>
 
@@ -701,20 +713,74 @@
     }
   }
 
+  // ── Quota tracking ─────────────────────────────────────────────────────────
+  // Total RPD cap = 40% of 20 = 8/day (cron uses 1, leaving 7 manual)
+  const MANUAL_DAILY_CAP = 7;
+
+  function todayStr() {
+    return localDateStr(new Date());
+  }
+
+  function getQuota() {
+    const raw = localStorage.getItem('analyse_quota');
+    if (raw) {
+      const q = JSON.parse(raw);
+      if (q.date === todayStr()) return q.used;
+    }
+    return 0;
+  }
+
+  function bumpQuota() {
+    const used = getQuota() + 1;
+    localStorage.setItem('analyse_quota', JSON.stringify({ date: todayStr(), used }));
+    return used;
+  }
+
+  function updateQuotaBadge() {
+    const used = getQuota();
+    const left = MANUAL_DAILY_CAP - used;
+    const badge = document.getElementById('quota-badge');
+    const btn = document.getElementById('analyse-btn');
+    if (!badge) return;
+    if (left <= 0) {
+      badge.textContent = '0 left today';
+      badge.className = 'quota-badge zero';
+      btn.disabled = true;
+    } else if (left <= 2) {
+      badge.textContent = `${left} left today`;
+      badge.className = 'quota-badge low';
+      btn.disabled = false;
+    } else {
+      badge.textContent = `${left}/${MANUAL_DAILY_CAP} left`;
+      badge.className = 'quota-badge ok';
+      btn.disabled = false;
+    }
+  }
+
   // ── Analyse Now ────────────────────────────────────────────────────────────
   async function triggerAnalysis() {
     const pat = localStorage.getItem('vitals_pat');
     const btn = document.getElementById('analyse-btn');
     const toast = document.getElementById('analyse-toast');
+
     if (!pat) {
       toast.className = 'analyse-toast show error';
       toast.textContent = 'Open VITALS app first and enter your PAT to enable this.';
       setTimeout(() => toast.className = 'analyse-toast', 3000);
       return;
     }
+
+    if (getQuota() >= MANUAL_DAILY_CAP) {
+      toast.className = 'analyse-toast show error';
+      toast.textContent = `Daily limit reached (${MANUAL_DAILY_CAP} manual triggers/day). Resets at midnight. Cron runs automatically at 7:30 AM IST.`;
+      setTimeout(() => toast.className = 'analyse-toast', 5000);
+      return;
+    }
+
     btn.classList.add('loading'); btn.textContent = '⟳ Running…';
     toast.className = 'analyse-toast show running';
     toast.textContent = '⟳ Workflow triggered — Gemini is analysing your data. Refresh in ~60 seconds.';
+
     try {
       const res = await fetch(
         'https://api.github.com/repos/mavinash-dev/life-log/actions/workflows/analyze.yml/dispatches',
@@ -722,8 +788,11 @@
           body: JSON.stringify({ ref:'main' }) }
       );
       if (res.status === 204) {
+        bumpQuota();
+        updateQuotaBadge();
+        const left = MANUAL_DAILY_CAP - getQuota();
         toast.className = 'analyse-toast show done';
-        toast.textContent = '✓ Analysis started. Insights update in ~60s — refresh to see them.';
+        toast.textContent = `✓ Analysis started. Insights update in ~60s — refresh to see them. (${left} triggers left today)`;
         btn.textContent = '✓ Started';
         setTimeout(() => { btn.classList.remove('loading'); btn.textContent = '✦ Analyse Now'; toast.className = 'analyse-toast'; }, 60000);
       } else throw new Error(`GitHub returned ${res.status}`);
@@ -736,6 +805,7 @@
   }
 
   // ── Init ───────────────────────────────────────────────────────────────────
+  updateQuotaBadge();
   if (sessionStorage.getItem('life_unlocked') === 'true') {
     document.getElementById('app').style.display = '';
     loadData();
